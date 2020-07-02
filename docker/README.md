@@ -43,6 +43,8 @@ docker --version
 http://dockerhub.com/  --> http://hub.docker.com
 1.docker仓库授权
 ~]# docker login docker.io
+Username: yl
+Password:
 ~]# docker search alpine
 ~]# docker pull alpine
 
@@ -88,71 +90,92 @@ docker stop 镜像id
 ~]# mkdir html
 html]# wget www.baidu.com -O index.html
 
-挂载并查看挂载信息
+挂载并查看挂载信息,本地/root/html，docker内/usr/share/nginx/html
 ~]# docker run -d --rm --name nginx_with_baidu -d -p82:80 -v /root/html:/usr/share/nginx/html harbor.od.com/nginx:v1.12.2
 ~]# docker inspect 8c440bed2ccb
+
+-e传递环境变量
 ~]# docker run --rm -e E_OPTS=abcdefg  harbor.od.com/alpine:latest printenv
 ~]# docker exec -ti nginx_with_baidu /bin/bash
 
+与cat相同
 tee /etc/apt/sources.list << EOF
 deb http://mirrors.163.com/debian/ jessie main non-free contrib
 deb http://mirrors.163.com/debian/ jessie-updates main non-free contrib
 EOF
 
 /# apt-get update && apt-get install curl -y
+~]# docker commit -p 8c440bed2ccb harbor.od.com/nginx:curl
+~]# docker push harbor.od.com/nginx:curl
 
-~]# docker commit -p 8c440bed2ccb oldboy1103/nginx:curl
-
-~]# docker push oldboy1103/nginx:curl
-
+三、配置dockerfile
+例1：
 vi /data/dockerfile/Dockerfile
+#从上面授权的远端仓库拉取基础镜像
 FROM stanleyws/nginx:v1.12.2
+#镜像启用的用户名
 USER nginx
+#定位到命令执行跟目录
 WORKDIR /usr/share/nginx/html
 
-dockerfile]# docker build . -t docker.io/oldboy1103/nginx:v1.12.2_with_user_workdir
-
-dockerfile]# docker run --rm -ti --name nginx123 oldboy1103/nginx:v1.12.2_with_user_workdir /bin/bash
+dockerfile]# docker build . -t harbor.od.com/nginx:v1.12.2_last
+dockerfile]# docker run --rm -ti --name nginx123 harbor.od.com/nginx:v1.12.2_last /bin/bash
 nginx@149ac8f528cc:/usr/share/nginx/html$ whoami
 nginx
 nginx@149ac8f528cc:/usr/share/nginx/html$ pwd
 /usr/share/nginx/html
 
+例2：
+vi /data/dockerfile/Dockerfile
 FROM stanleyws/nginx:v1.12.2
+#将本地当前目录下的index.html复制到docker内目录下
 ADD index.html /usr/share/nginx/html/index.html
+#暴露容器的端口
 EXPOSE 80
 
-dockerfile]# docker build . -t oldboy1103/nginx:v1.12.2_with_index_expose
+dockerfile]# docker build . -t harbor.od.com/nginx:v1.12.2_with_index_expose
+dockerfile]# docker run --rm -d --name nginx123 -P harbor.od.com/nginx:v1.12.2_with_index_expose
 
-dockerfile]# docker run --rm -d --name nginx123 -P oldboy1103/nginx:v1.12.2_with_index_expose
-
+例3：
+vi /data/dockerfile/Dockerfile
 FROM centos:7
+#设置的ENV环境变量
 ENV VER 9.11.4
+#执行命令
 RUN yum install bind-$VER -y
 
-dockerfile]# docker build . -t oldboy1103/bind:v9.11.4_with_env_run
+dockerfile]# docker build . -t harbor.od.com/bind:v9.11.4_with_env_run
 
+例4：
+vi /data/dockerfile/Dockerfile
 FROM centos:7
+#创建docker的镜像的步骤
 RUN yum install httpd -y
+Docker镜像被启动后，执行的命令
 CMD ["httpd","-D","FOREGROUND"]
 
 dockerfile]# docker build . -t oldboy1103/httpd:test
 
+例5：
+vi /data/dockerfile/Dockerfile
 FROM centos:7
 ADD entrypoint.sh /entrypoint.sh
 RUN yum install epel-release -q -y && yum install nginx -y
+#设置容器启动时运行的命令
 ENTRYPOINT /entrypoint.sh
 
+vi /data/dockerfile/entrypoint.sh
 #!/bin/bash
-
 /sbin/nginx -g "daemon off;"
+注：docker run的时候把command最为容器内部命令，如果你使用nginx，那么nginx程序将后台运行，这个时候nginx并不是pid为1的程序，而是执行的bash，这个bash执行了nginx指令后就挂了，所以容器也就退出了，和你这个一样的道理，pm2 start 过后，bash 的pid为1，那么此时bash执行完以后会退出，所以容器也就退出了
 
 dockerfile]# docker run --rm -p84:80 oldboy1103/nginx:mynginx
-
+例6：
 FROM oldboy1103/nginx:v1.12.2
 USER root
 ENV WWW /usr/share/nginx/html
 ENV CONF /etc/nginx/conf.d
+#定义时区
 RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\ 
     echo 'Asia/Shanghai' >/etc/timezone
 WORKDIR $WWW
@@ -162,11 +185,9 @@ EXPOSE 80
 CMD ["nginx","-g","daemon off;"]
 
 dockerfile]# vi demo.od.com.conf
-
 server {
    listen 80;
    server_name demo.od.com;
-
    root /usr/share/nginx/html;
 }
 
