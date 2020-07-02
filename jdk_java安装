@@ -1,0 +1,13 @@
+ls jdk-8u201-linux-x64.tar.gz
+rm -rf /opt/src/jdk1.8.0_191
+mkdir -p /opt/src
+cd /opt/src
+tar -xzvf jdk-8u201-linux-x64.tar.gz
+ln -s  /opt/src/jdk1.8.0_201 /opt/src/jdk
+# Environment Variable
+sed -i '/JAVA_HOME/d' /etc/profile
+sed -i '/JRE_HOME/d' /etc/profile
+echo 'export JAVA_HOME=/opt/src/jdk' >> /etc/profile
+echo 'export JRE_HOME=/opt/src/jdk/jre' >> /etc/profile
+echo 'export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH' >> /etc/profile
+echo 'if ! echo $PATH |grep -w /opt/src/jdk/bin >/dev/null 2>&1;then export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH;fi' >> /etc/profile
