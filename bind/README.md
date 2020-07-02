@@ -7,3 +7,13 @@ curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-
 1.vi /etc/named.conf
 ~]# named-checkconf
 2.vim /etc/named.rfc1912.zones
+3.本地域名
+vim /var/named//var/named/host.com.zone
+4.外部域名
+/var/named/od.com.zone
+查看配置解析情况
+~]#named-checkconf
+~]#systemctl restart named
+~]#dig -t A hdss7-12.host.com @10.4.7.11 +short
+到外部网路检查，如Windows系统cmd上
+~]#ping hdss7-12.host.com
