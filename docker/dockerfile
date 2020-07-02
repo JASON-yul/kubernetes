@@ -1,0 +1,12 @@
+FROM oldboy1103/nginx:v1.12.2
+USER root
+ENV WWW /usr/share/nginx/html
+ENV CONF /etc/nginx/conf.d
+#定义时区
+RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\ 
+    echo 'Asia/Shanghai' >/etc/timezone
+WORKDIR $WWW
+ADD index.html $WWW/index.html
+ADD demo.od.com.conf $CONF/demo.od.com.conf
+EXPOSE 80
+CMD ["nginx","-g","daemon off;"]
