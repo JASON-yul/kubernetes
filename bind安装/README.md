@@ -31,3 +31,7 @@ systemctl restart network
 
 6.若用Windows主机的wmware需配置
 wmnet8网卡更改DNS：10.4.7.11
+
+7.验证
+linux：ping www.baidu.comping hdss7-200
+Windows：ping hdss7-200.host.com
