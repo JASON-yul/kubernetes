@@ -26,3 +26,4 @@ yum makecache
 yum install wget net-tools telnet tree nmap sysstat lrzsz dos2unix bind-utils -y
 
 6.安装bind9详见bind
+7.签发证书
