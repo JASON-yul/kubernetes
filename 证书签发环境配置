@@ -1,0 +1,51 @@
+1.安装cfssl
+wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O /usr/bin/cfssl
+wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -O /usr/bin/cfssl-json
+wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64 -O /usr/bin/cfssl-certinfo
+chmod +x /usr/bin/cfssl*
+
+2.创建生成ca证书csr的json配置文件
+mkdir /opt/certs
+vi  /opt/certs/ca-csr.json
+{
+    "CN": "OldboyEdu",
+    "hosts": [
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "beijing",
+            "L": "beijing",
+            "O": "od",
+            "OU": "ops"
+        }
+    ],
+    "ca": {
+        "expiry": "175200h"
+    }
+}
+
+生成ca证书
+cd /opt/certs
+cfssl gencert -initca ca-csr.json | cfssl-json -bare ca
+生成证书ca.csr  ca-csr.json  ca-key.pem  ca.pem
+
+3.所有主机主机安装docker
+curl -fsSL https://get.docker.com |bash -s docker --mirror Aliyun
+配置相关docker权限
+mkdir  /etc/docker &&vi  /etc/docker/daemon.json
+{
+  "graph": "/data/docker",
+  "storage-driver": "overlay2",
+  "insecure-registries": ["registry.access.redhat.com","quay.io","harbor.od.com"],
+  "registry-mirrors": ["https://q2gr04ke.mirror.aliyuncs.com"],
+  "bip": "本机ip/24",
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "live-restore": true
+}
+
+启动：mkdir -p /data/docker   &&systemctl start docker  &&systemctl enable docker   &&docker --version
