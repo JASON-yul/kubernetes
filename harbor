@@ -1,0 +1,63 @@
+私有仓库harbor配置：
+1.harbor官网github地址：https://github.com/goharbor/harbor
+
+2.200 src]# tar xf harbor-offline-installer-v1.8.3.tgz -C /opt/
+opt]# mv harbor/ harbor-v1.8.3
+opt]# ln -s /opt/harbor-v1.8.3/ /opt/harbor
+
+opt]# vi /opt/harbor/harbor.yml
+hostname: harbor.od.com
+http:  
+port: 180 
+harbor_admin_password:Harbor12345
+data_volume: /data/harbor
+log:    
+level:  info    
+rotate_count:  50    
+rotate_size:200M    
+location: /data/harbor/logs
+
+mkdir -p /data/harbor/logs
+
+3.harbor依赖docker-compose，安装docker-compose
+yum install docker-compose -y
+harbor]# ./install.sh
+docker-compose ps
+
+4.配置harbor的dns解析
+11 ~]# vi /var/named/od.com.zone
+2020032002（滚动） ; serial
+harbor             A    harbor安装的主机ip
+
+11 ~]# systemctl restart named
+11 ~]# dig -t A harbor.od.com @named配置主机 +short
+
+5.Nginx代理配置
+200 harbor]# yum install nginx -y
+vi /etc/nginx/conf.d/harbor.od.com.conf
+server {
+    listen       80;
+    server_name  harbor.od.com;
+    client_max_body_size 1000m;
+    location / {
+        proxy_pass http://127.0.0.1:180;
+    }
+}
+harbor]# nginx -t
+harbor]# systemctl start nginx
+harbor]# systemctl enable nginx
+
+6.登录curl harbor.od.com
+浏览器输入：harbor.od.com 用户名：admin 密码：Harbor12345
+新建项目：public 访问级别：公开
+
+7.下载镜像并给镜像打tag
+harbor]# docker pull nginx:1.7.9
+arbor]# docker images |grep 1.7.9
+harbor]# docker tag 镜像id harbor.od.com/public/nginx:v1.7.9
+登录harbor（用文件中配置的账号密码）并上传到仓库
+harbor]# docker login harbor.od.com
+账号：admin
+密码：Harbor12345
+harbor]# docker push harbor.od.com/public/nginx:v1.7.9
+
