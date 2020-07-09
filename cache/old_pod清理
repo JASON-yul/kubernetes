@@ -1,0 +1,15 @@
+#!/bin/bash
+kubectl get pods -n default >/tmp/1.txt
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/d/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete pod {} --grace-period=0 --force
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/d/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete deploy {} --grace-period=0 --force {}
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/d/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete ep {} --grace-period=0 --force {}
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/d/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete svc {} --grace-period=0 --force {}
+
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/h/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete pod {} --grace-period=0 --force {}
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/h/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete deploy {} --grace-period=0 --force {}
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/h/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete ep {} --grace-period=0 --force {}
+cat /tmp/1.txt |grep '^[0-z]00'|awk '{if($NF ~ '/h/') print $1,$NF}'|awk -F'd$' '{print $1}'|awk '{if($2>7) print $1}'|awk -F'-' '{print $1"-"$2}'|xargs -i kubectl delete svc {} --grace-period=0 --force {}
+
+kubectl get pods |grep Completed|awk '{print $1}'|xargs -i kubectl delete pod --grace-period=0 --force {}
+kubectl get pods |grep Error|awk '{print $1}'|xargs -i kubectl delete pod --grace-period=0 --force {}
+kubectl get pods |grep CrashLoopBackOff|awk '{print $1}'|xargs -i kubectl delete pod --grace-period=0 --force {}
