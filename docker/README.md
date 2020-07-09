@@ -192,3 +192,7 @@ server {
 }
 
 dockerfile]# docker run -ti --rm --name lhwl2 --net=container:d62807b4af37 oldboy1103/nginx:curl /bin/bash
+
+其他说明：
+查看docker系统所在的系统环境：cat /etc/issue
+cat /proc/version 或 uname -a ，这样查到的是宿主机的系统。 
