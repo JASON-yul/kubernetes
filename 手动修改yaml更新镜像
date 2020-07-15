@@ -19,3 +19,6 @@ replicas: 1
 
 4.查看pod启动情况
 kubectl get pod -n 指定的namespaces名称
+
+5.也可以直接用
+kubectl set image deployment/beta-trustworthiness harbor.od.com/infra/micro-server-trustworthiness:beta-200
