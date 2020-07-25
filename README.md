@@ -1,3 +1,5 @@
+7台机器k8s扩容安装：https://github.com/kubernetes-sigs/kubespray#requirements
+
 # kubernetes
 环境部署：
 1.配置主机名：hostnamectl set-hostname xx.host.com
