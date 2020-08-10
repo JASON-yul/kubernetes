@@ -9,6 +9,8 @@ beta-buildpackage       1/1     1            1           78d
 beta-gateway            2/2     2            2           117d
 
 2.kubectl get pod -n 指定的namespaces名称|grep pod名称
+或通过标签查询：kubectl get pods -A -l app=gama-pipeline  （对于资源数目较大的情况，你会发现使用 -l 或 --selector 指定筛选器（标签查询）能很容易根据标签筛选资源）
+
 beta-trustworthiness-6b9957744c-chjzk   1/1     Running   0          8h
 
 3.声明式编辑yaml文件
