@@ -15,6 +15,9 @@ beta-trustworthiness-6b9957744c-chjzk   1/1     Running   0          8h
 
 3.声明式编辑yaml文件
 kubectl edit deploy/beta-trustworthiness -n 指定的namespaces名称
+
+（如果需要更新某些初始化后无法更新的资源字段：kubectl replace -f https://k8s.io/examples/application/nginx/nginx-deployment.yaml --force）
+
 稳妥起见，现将replicas改为0，并完成镜像修改推出，然后再将replicas改为扩容数量
 replicas: 1
 - image: harbor.od.com/infra/micro-server-trustworthiness:beta-200
