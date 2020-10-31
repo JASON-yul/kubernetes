@@ -405,7 +405,7 @@ metadata:
   namespace: infra
 spec:
   rules:
-  - host: dubbo-monitor.od.com
+  - host: dubbo-monitor.od.com         #对外域名需要配dns解析
     http:
       paths:
       - path: /
