@@ -76,11 +76,11 @@ spec:
       - name: jenkins
         image: harbor.od.com/infra/jenkins:v2.190.3
         imagePullPolicy: IfNotPresent
-        ports:
+        ports:                            #对外暴露端口
         - containerPort: 8080
           protocol: TCP
         env:
-        - name: JAVA_OPTS
+        - name: JAVA_OPTS                      #jar包的环境变量
           value: -Xmx512m -Xms512m
         volumeMounts:
         - name: data
@@ -185,7 +185,7 @@ vim entrypoint.sh
 #!/bin/sh
 M_OPTS="-Duser.timezone=Asia/Shanghai -javaagent:/opt/prom/jmx_javaagent-0.3.1.jar=$(hostname -i):${M_PORT:-"12346"}:/opt/prom/config.yml"
 C_OPTS=${C_OPTS}
-JAR_BALL=${JAR_BALL}
+JAR_=${JAR_BALL}
 exec java -jar ${M_OPTS} ${C_OPTS} ${JAR_BALL}
 
 ]# docker build . -t harbor.od.com/base/jre8:8u112
@@ -247,14 +247,14 @@ spec:
         - containerPort: 20880
           protocol: TCP
         env:
-        - name: JAR_BALL
-          value: dubbo-server.jar
-        imagePullPolicy: IfNotPresent
+        - name: JAR_BALL              #jar包的环境变量，传到docker内（云原生程序的重要配置）
+          value: dubbo-server.jar      #jar包的名称
+        imagePullPolicy: IfNotPresent   #本地没有再去远程拉
       imagePullSecrets:
       - name: harbor
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
-      securityContext: 
+      securityContext:              #runAsuer是0，则表示用root方式启动
         runAsUser: 0
       schedulerName: default-scheduler
   strategy:
@@ -319,15 +319,15 @@ cd /opt/src/dubbo-monitor/dubbo-monitor-simple/conf
 vim dubbo_origin.properties
 
 dubbo.registry.address=zookeeper://zk1.od.com:2181?backup=zk2.od.com:2181,zk3.od.com:2181
-dubbo.protocol.port=20880
-dubbo.jetty.port=8080
+dubbo.protocol.port=20880                  #rpc端口
+dubbo.jetty.port=8080                     #http端口
 dubbo.jetty.directory=/dubbo-monitor-simple/monitor
 dubbo.statistics.directory=/dubbo-monitor-simple/statistics
 dubbo.charts.directory=/dubbo-monitor-simple/charts
 dubbo.log4j.file=logs/dubbo-monitor.log
 
 
-sed -r -i -e '/^nohup/{p;:a;N;$!ba;d}'  ./dubbo-monitor-simple/bin/start.sh && sed  -r -i -e "s%^nohup(.*)%exec \1%"  ./dubbo-monitor-simple/bin/start.sh
+sed -r -i -e '/^nohup/{p;:a;N;$!ba;d}'  ./dubbo-monitor-simple/bin/start.sh && sed  -r -i -e "s%^nohup(.*)%exec \1%"  ./dubbo-monitor-simple/bin/start.sh         #删除nohup行以后的内容，并量nohup改为exec
 
 cp -a  /opt/src/dubbo-monitor /data/dockerfile/
 
@@ -391,8 +391,8 @@ metadata:
 spec:
   ports:
   - protocol: TCP
-    port: 8080
-    targetPort: 8080
+    port: 8080         #clusterip端口
+    targetPort: 8080   #docker的端口
   selector: 
     app: dubbo-monitor
  
@@ -411,7 +411,7 @@ spec:
       - path: /
         backend: 
           serviceName: dubbo-monitor
-          servicePort: 8080
+          servicePort: 8080         #要与上面service.yaml的port端口相同
  
 
 git_repo git@gitee.com/stanleywang/dubbo-demo-web.git
