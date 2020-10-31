@@ -1,0 +1,92 @@
+将7-11、7-12，7-21的zk全部停止，并删除/data/zookeeper/logs和data里的内容，配置zoo.cfg,取消集群
+#server.1=zk1.od.com:2888:3888
+#server.2=zk2.od.com:2888:3888
+#server.3=zk3.od.com:2888:3888
+
+7-200
+cm.yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dubbo-monitor-cm
+  namespace: infra
+data:
+  dubbo.properties: |
+    dubbo.container=log4j,spring,registry,jetty
+    dubbo.application.name=simple-monitor
+    dubbo.application.owner=OldboyEdu
+    dubbo.registry.address=zookeeper://zk1.od.com:2181
+    dubbo.protocol.port=20880
+    dubbo.jetty.port=8080
+    dubbo.jetty.directory=/dubbo-monitor-simple/monitor
+    dubbo.charts.directory=/dubbo-monitor-simple/charts
+    dubbo.statistics.directory=/dubbo-monitor-simple/statistics
+    dubbo.log4j.file=/dubbo-monitor-simple/logs/dubbo-monitor.log
+    dubbo.log4j.level=WARN
+	
+dp.yaml
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: dubbo-monitor
+  namespace: infra
+  labels: 
+    name: dubbo-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      name: dubbo-monitor
+  template:
+    metadata:
+      labels: 
+        app: dubbo-monitor
+        name: dubbo-monitor
+    spec:
+      containers:
+      - name: dubbo-monitor
+        image: harbor.od.com/infra/dubbo-monitor:latest
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 20880
+          protocol: TCP
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - name: configmap-volume
+            mountPath: /dubbo-monitor-simple/conf
+      volumes:
+        - name: configmap-volume
+          configMap:
+            name: dubbo-monitor-cm
+      imagePullSecrets:
+      - name: harbor
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      securityContext: 
+        runAsUser: 0
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxUnavailable: 1
+      maxSurge: 1
+  revisionHistoryLimit: 7
+  progressDeadlineSeconds: 600
+  
+
+iptables-save |grep -i postrouting
+
+:POSTROUTING ACCEPT [5:300]
+:KUBE-POSTROUTING - [0:0]
+-A POSTROUTING -s 172.7.22.0/24 ! -d 172.7.0.0/16 ! -o docker0 -j MASQUERADE
+-A POSTROUTING -m comment --comment "kubernetes postrouting rules" -j KUBE-POSTROUTING
+-A POSTROUTING -s 172.7.22.3/32 -d 172.7.22.3/32 -p tcp -m tcp --dport 80 -j MASQUERADE
+-A KUBE-POSTROUTING -m comment --comment "kubernetes service traffic requiring SNAT" -m mark --mark 0x4000/0x4000 -j MASQUERADE
+-A KUBE-POSTROUTING -m comment --comment "Kubernetes endpoints dst ip:port, source ip for solving hairpin purpose" -m set --match-set KUBE-LOOP-BACK dst,dst,src -j MASQUERADE
+
+iptables-save |grep -i reject（空）
+service iptables save（保存iptables内容）
+https://github.com/ctripcorp/apollo

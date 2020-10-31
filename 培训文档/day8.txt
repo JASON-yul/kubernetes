@@ -1,0 +1,1277 @@
+CD持续部署
+PaaS平台：Spinnaker：集群管理，主要是管理IaaS的资源
+
+~]# docker pull minio/minio:latest
+对象存储的开源软件minio
+dp.yaml
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: minio
+  name: minio
+  namespace: armory
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      name: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+        name: minio
+    spec:
+      containers:
+      - name: minio
+        image: harbor.od.com/armory/minio:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        args:
+        - server
+        - /data
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: admin
+        - name: MINIO_SECRET_KEY
+          value: admin123
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /data
+          name: data
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - nfs:
+          server: hdss7-200
+          path: /data/nfs-volume/minio
+        name: data
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: armory
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: minio
+	
+ingress.yaml
+
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: minio
+  namespace: armory
+spec:
+  rules:
+  - host: minio.od.com
+    http:
+      paths:
+      - path: /
+        backend: 
+          serviceName: minio
+          servicePort: 80
+
+先创建namespace和harbor的secret
+kubectl create namespace armory
+kubectl create secret docker-registry harbor --docker-server=harbor.od.com --docker-username=admin --docker-password=Harbor12345 -n armory
+
+
+]# docker pull redis:4.0.14
+
+dp.yaml
+
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: redis
+  name: redis
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      name: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        name: redis
+    spec:
+      containers:
+      - name: redis
+        image: harbor.od.com/armory/redis:v4.0.14
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+      imagePullSecrets:
+      - name: harbor
+
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: armory
+spec:
+  ports:
+  - port: 6379
+    protocol: TCP
+    targetPort: 6379
+  selector:
+    app: redis
+
+
+
+
+
+~]# docker pull docker.io/armory/spinnaker-clouddriver-slim:release-1.8.x-14c9664
+
+vim credentials
+credentials
+[default]
+aws_access_key_id=admin
+aws_secret_access_key=admin123
+
+
+
+kubectl create secret generic credentials --from-file=./credentials -n armory
+
+签证书
+cd /opt/certs
+vim admin-csr.json
+{
+    "CN": "cluster-admin",
+    "hosts": [
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "beijing",
+            "L": "beijing",
+            "O": "od",
+            "OU": "ops"
+        }
+    ]
+}
+
+7-21
+kubectl config set-cluster myk8s --certificate-authority=./ca.pem --embed-certs=true --server=https://10.4.7.10:7443 --kubeconfig=config
+kubectl config set-credentials cluster-admin --client-certificate=./admin.pem --client-key=./admin-key.pem --embed-certs=true --kubeconfig=config
+kubectl config set-context myk8s-context --cluster=myk8s --user=cluster-admin --kubeconfig=config
+kubectl config use-context myk8s-context --kubeconfig=config
+kubectl create clusterrolebinding myk8s-admin --clusterrole=cluster-admin --user=cluster-admin
+
+# kubectl create cm default-kubeconfig --from-file=default-kubeconfig -n armory
+
+init-env.yaml
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: init-env
+  namespace: armory
+data:
+  API_HOST: http://spinnaker.od.com/api
+  ARMORY_ID: c02f0781-92f5-4e80-86db-0ba8fe7b8544
+  ARMORYSPINNAKER_CONF_STORE_BUCKET: armory-platform
+  ARMORYSPINNAKER_CONF_STORE_PREFIX: front50
+  ARMORYSPINNAKER_GCS_ENABLED: "false"
+  ARMORYSPINNAKER_S3_ENABLED: "true"
+  AUTH_ENABLED: "false"
+  AWS_REGION: us-east-1
+  BASE_IP: 127.0.0.1
+  CLOUDDRIVER_OPTS: -Dspring.profiles.active=armory,configurator,local
+  CONFIGURATOR_ENABLED: "false"
+  DECK_HOST: http://spinnaker.od.com
+  ECHO_OPTS: -Dspring.profiles.active=armory,configurator,local
+  GATE_OPTS: -Dspring.profiles.active=armory,configurator,local
+  IGOR_OPTS: -Dspring.profiles.active=armory,configurator,local
+  PLATFORM_ARCHITECTURE: k8s
+  REDIS_HOST: redis://redis:6379
+  SERVER_ADDRESS: 0.0.0.0
+  SPINNAKER_AWS_DEFAULT_REGION: us-east-1
+  SPINNAKER_AWS_ENABLED: "false"
+  SPINNAKER_CONFIG_DIR: /home/spinnaker/config
+  SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH: ""
+  SPINNAKER_HOME: /home/spinnaker
+  SPRING_PROFILES_ACTIVE: armory,configurator,local
+  
+custom-config.yaml
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: custom-config
+  namespace: armory
+data:
+  clouddriver-local.yml: |
+    kubernetes:
+      enabled: true
+      accounts:
+        - name: cluster-admin
+          serviceAccount: false
+          dockerRegistries:
+            - accountName: harbor
+              namespace: []
+          namespaces:
+            - test
+            - prod
+          kubeconfigFile: /opt/spinnaker/credentials/custom/default-kubeconfig
+      primaryAccount: cluster-admin
+    dockerRegistry:
+      enabled: true
+      accounts:
+        - name: harbor
+          requiredGroupMembership: []
+          providerVersion: V1
+          insecureRegistry: true
+          address: http://harbor.od.com
+          username: admin
+          password: Harbor12345
+      primaryAccount: harbor
+    artifacts:
+      s3:
+        enabled: true
+        accounts:
+        - name: armory-config-s3-account
+          apiEndpoint: http://minio
+          apiRegion: us-east-1
+      gcs:
+        enabled: false
+        accounts:
+        - name: armory-config-gcs-account
+  custom-config.json: ""
+  echo-configurator.yml: |
+    diagnostics:
+      enabled: true
+  front50-local.yml: |
+    spinnaker:
+      s3:
+        endpoint: http://minio
+  igor-local.yml: |
+    jenkins:
+      enabled: true
+      masters:
+        - name: jenkins-admin
+          address: http://jenkins.od.com
+          username: admin
+          password: admin123
+      primaryAccount: jenkins-admin
+  nginx.conf: |
+    gzip on;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml image/x-icon;
+
+    server {
+           listen 80;
+
+           location / {
+                proxy_pass http://armory-deck/;
+           }
+
+           location /api/ {
+                proxy_pass http://armory-gate:8084/;
+           }
+
+           rewrite ^/login(.*)$ /api/login$1 last;
+           rewrite ^/auth(.*)$ /api/auth$1 last;
+    }
+  spinnaker-local.yml: |
+    services:
+      igor:
+        enabled: true
+		
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-clouddriver
+  name: armory-clouddriver
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-clouddriver
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-clouddriver"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"clouddriver"'
+      labels:
+        app: armory-clouddriver
+    spec:
+      containers:
+      - name: armory-clouddriver
+        image: harbor.od.com/armory/clouddriver:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh && cd /home/spinnaker/config
+          && /opt/clouddriver/bin/clouddriver
+        ports:
+        - containerPort: 7002
+          protocol: TCP
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx2000M
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 7002
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 7002
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 3
+          successThreshold: 5
+          timeoutSeconds: 1
+        securityContext: 
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /home/spinnaker/.aws
+          name: credentials
+        - mountPath: /opt/spinnaker/credentials/custom
+          name: default-kubeconfig
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: default-kubeconfig
+        name: default-kubeconfig
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - name: credentials
+        secret:
+          defaultMode: 420
+          secretName: credentials
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+		
+svc.yaml
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-clouddriver
+  namespace: armory
+spec:
+  ports:
+  - port: 7002
+    protocol: TCP
+    targetPort: 7002
+  selector:
+    app: armory-clouddriver
+	
+	
+# curl armory-clouddriver:7002/health
+
+~]# docker pull docker.io/armory/spinnaker-front50-slim:release-1.8.x-93febf2
+
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-front50
+  name: armory-front50
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-front50
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-front50"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"front50"'
+      labels:
+        app: armory-front50
+    spec:
+      containers:
+      - name: armory-front50
+        image: harbor.od.com/armory/front50:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh && cd /home/spinnaker/config
+          && /opt/front50/bin/front50
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: JAVA_OPTS
+          value: -javaagent:/opt/front50/lib/jamm-0.2.5.jar -Xmx1000M
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 5
+          successThreshold: 8
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /home/spinnaker/.aws
+          name: credentials
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - name: credentials
+        secret:
+          defaultMode: 420
+          secretName: credentials
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-front50
+  namespace: armory
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: armory-front50
+	
+ ~]# docker pull docker.io/armory/spinnaker-orca-slim:release-1.8.x-de4ab55
+ 
+ dp.yaml
+ 
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-orca
+  name: armory-orca
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-orca
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-orca"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"orca"'
+      labels:
+        app: armory-orca
+    spec:
+      containers:
+      - name: armory-orca
+        image: harbor.od.com/armory/orca:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh && cd /home/spinnaker/config
+          && /opt/orca/bin/orca
+        ports:
+        - containerPort: 8083
+          protocol: TCP
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx1000M
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 8083
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8083
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 3
+          successThreshold: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-orca
+  namespace: armory
+spec:
+  ports:
+  - port: 8083
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    app: armory-orca
+	
+~]# docker pull docker.io/armory/echo-armory:c36d576-release-1.8.x-617c567
+
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-echo
+  name: armory-echo
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-echo
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-echo"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"echo"'
+      labels:
+        app: armory-echo
+    spec:
+      containers:
+      - name: armory-echo
+        image: harbor.od.com/armory/echo:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh && cd /home/spinnaker/config
+          && /opt/echo/bin/echo
+        ports:
+        - containerPort: 8089
+          protocol: TCP
+        env:
+        - name: JAVA_OPTS
+          value: -javaagent:/opt/echo/lib/jamm-0.2.5.jar -Xmx1000M
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8089
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8089
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 3
+          successThreshold: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-echo
+  namespace: armory
+spec:
+  ports:
+  - port: 8089
+    protocol: TCP
+    targetPort: 8089
+  selector:
+    app: armory-echo
+	
+~]# docker pull docker.io/armory/spinnaker-igor-slim:release-1.8-x-new-install-healthy-ae2b329
+
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-igor
+  name: armory-igor
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-igor
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-igor"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"igor"'
+      labels:
+        app: armory-igor
+    spec:
+      containers:
+      - name: armory-igor
+        image: harbor.od.com/armory/igor:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh && cd /home/spinnaker/config
+          && /opt/igor/bin/igor
+        ports:
+        - containerPort: 8088
+          protocol: TCP
+        env:
+        - name: IGOR_PORT_MAPPING
+          value: -8088:8088
+        - name: JAVA_OPTS
+          value: -Xmx1000M
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8088
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8088
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 5
+          successThreshold: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      securityContext:
+        runAsUser: 0
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-igor
+  namespace: armory
+spec:
+  ports:
+  - port: 8088
+    protocol: TCP
+    targetPort: 8088
+  selector:
+    app: armory-igor
+	
+~]# docker pull docker.io/armory/gate-armory:dfafe73-release-1.8.x-5d505ca
+
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-gate
+  name: armory-gate
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-gate
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-gate"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"gate"'
+      labels:
+        app: armory-gate
+    spec:
+      containers:
+      - name: armory-gate
+        image: harbor.od.com/armory/gate:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh gate && cd /home/spinnaker/config
+          && /opt/gate/bin/gate
+        ports:
+        - containerPort: 8084
+          name: gate-port
+          protocol: TCP
+        - containerPort: 8085
+          name: gate-api-port
+          protocol: TCP
+        env:
+        - name: GATE_PORT_MAPPING
+          value: -8084:8084
+        - name: GATE_API_PORT_MAPPING
+          value: -8085:8085
+        - name: JAVA_OPTS
+          value: -Xmx1000M
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - wget -O - http://localhost:8084/health || wget -O - https://localhost:8084/health
+          failureThreshold: 5
+          initialDelaySeconds: 600
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - wget -O - http://localhost:8084/health?checkDownstreamServices=true&downstreamServices=true
+              || wget -O - https://localhost:8084/health?checkDownstreamServices=true&downstreamServices=true
+          failureThreshold: 3
+          initialDelaySeconds: 180
+          periodSeconds: 5
+          successThreshold: 10
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      securityContext:
+        runAsUser: 0
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-gate
+  namespace: armory
+spec:
+  ports:
+  - name: gate-port
+    port: 8084
+    protocol: TCP
+    targetPort: 8084
+  - name: gate-api-port
+    port: 8085
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    app: armory-gate
+	
+~]# docker pull docker.io/armory/deck-armory:d4bf0cf-release-1.8.x-0a33f94
+
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-deck
+  name: armory-deck
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-deck
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-deck"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"deck"'
+      labels:
+        app: armory-deck
+    spec:
+      containers:
+      - name: armory-deck
+        image: harbor.od.com/armory/deck:v1.8.x
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh && /entrypoint.sh
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: init-env
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 3
+          successThreshold: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/podinfo
+          name: podinfo
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /opt/spinnaker/config/custom
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+      - downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+        name: podinfo
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-deck
+  namespace: armory
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: armory-deck
+	
+~]# docker pull nginx:1.12.2
+
+dp.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: armory-nginx
+  name: armory-nginx
+  namespace: armory
+spec:
+  replicas: 1
+  revisionHistoryLimit: 7
+  selector:
+    matchLabels:
+      app: armory-nginx
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: '"armory"'
+        artifact.spinnaker.io/name: '"armory-nginx"'
+        artifact.spinnaker.io/type: '"kubernetes/deployment"'
+        moniker.spinnaker.io/application: '"armory"'
+        moniker.spinnaker.io/cluster: '"nginx"'
+      labels:
+        app: armory-nginx
+    spec:
+      containers:
+      - name: armory-nginx
+        image: harbor.od.com/armory/nginx:v1.12.2
+        imagePullPolicy: Always
+        command:
+        - bash
+        - -c
+        args:
+        - bash /opt/spinnaker/config/default/fetch.sh nginx && nginx -g 'daemon off;'
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        - containerPort: 8085
+          name: api
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 3
+          successThreshold: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /opt/spinnaker/config/default
+          name: default-config
+        - mountPath: /etc/nginx/conf.d
+          name: custom-config
+      imagePullSecrets:
+      - name: harbor
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: custom-config
+        name: custom-config
+      - configMap:
+          defaultMode: 420
+          name: default-config
+        name: default-config
+		
+svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: armory-nginx
+  namespace: armory
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  - name: api
+    port: 8085
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    app: armory-nginx
+	
+ingress.yaml
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    app: spinnaker
+    web: spinnaker.od.com
+  name: armory-nginx
+  namespace: armory
+spec:
+  rules:
+  - host: spinnaker.od.com
+    http:
+      paths:
+      - backend:
+          serviceName: armory-nginx
+          servicePort: 80
+
+"imageId": "harbor.od.com/${parameters.image_name}:${parameters.git_ver}_${parameters.add_tag}",
+"registry": "harbor.od.com",
+"repository": "${parameters.image_name}",
+"tag": "${parameters.git_ver}_${parameters.add_tag}"

@@ -1,0 +1,192 @@
+﻿7-11/7-12/7-21
+
+安装jdk
+cd /opt/src/
+wget http://192.168.1.60:8080/day3/jdk-8u221-linux-x64.tar.gz
+mkdir /usr/java
+tar xf jdk-8u221-linux-x64.tar.gz -C /usr/java
+ln -s /usr/java/jdk1.8.0_221/ /usr/java/jdk
+
+vim /etc/profile
+export JAVA_HOME=/usr/java/jdk
+export PATH=$JAVA_HOME/bin:$JAVA_HOME/bin:$PATH
+export CLASSPATH=$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/lib/tools.jar
+source /etc/profile
+java -version
+https://archive.apache.org/dist/zookeeper/
+
+[root@hdss7-11 src]tar xf zookeeper-3.4.14.tar.gz -C /opt/
+[root@hdss7-11 src]# ln -s /opt/zookeeper-3.4.14/ /opt/zookeeper
+     
+mkdir -pv /data/zookeeper/data /data/zookeeper/logs
+
+opt]# vi /opt/zookeeper/conf/zoo.cfg
+
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/data/zookeeper/data
+dataLogDir=/data/zookeeper/logs
+clientPort=2181
+server.1=zk1.od.com:2888:3888
+server.2=zk2.od.com:2888:3888
+server.3=zk3.od.com:2888:3888
+
+vim /var/named/od.com.zone
+
+dns                A    10.4.7.11
+harbor             A    10.4.7.200
+k8s-yaml           A    10.4.7.200
+traefik            A    10.4.7.10
+dashboard          A    10.4.7.10
+zk1                A    10.4.7.11
+zk2                A    10.4.7.12
+zk3                A    10.4.7.21
+systemctl  restart named
+
+7-200
+docker pull jenkins/jenkins:2.190.3
+
+
+
+~]# ssh-keygen -t rsa -b 2048 -C "xxx@xx.xxx" -N "" -f /root/.ssh/id_rsa
+
+vim /data/dockerfile/jenkins/Dockerfile
+
+FROM harbor.od.com/public/jenkins:v2.190.3
+USER root
+RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\ 
+    echo 'Asia/Shanghai' >/etc/timezone
+ADD id_rsa /root/.ssh/id_rsa
+ADD config.json /root/.docker/config.json
+ADD get-docker.sh /get-docker.sh
+RUN echo "    StrictHostKeyChecking no">>/etc/ssh/ssh_config &&\
+    /get-docker.sh
+	
+curl -fsSL get.docker.com -o get-docker.sh
+
+docker build . -t harbor.od.com/infra/jenkins:v2.190.3
+docker push harbor.od.com/infra/jenkins:v2.190.3
+
+问题：Failed to list *v1alpha1.IngressRouteUDP: ingressrouteudps.traefik.containo.us is forbidden: 
+User "system:serviceaccount:kube-system:traefik-ingress-controller
+" cannot list resource "ingressrouteudps" in API group "traefik.containo.us" at the cluster scope
+措施：检查（重启）
+kubectl get deploy -n kube-system
+kubectl get deploy kubernetes-dashboard -o yaml -n kube-system
+kubectl get sa -n kube-system
+kubectl get sa kubernetes-dashboard-admin -o yaml -n kube-system
+kubectl get clusterrolebinding |grep admin
+kubectl get clusterrolebinding kubernetes-dashboard-admin -o yaml
+systemctl restart docker
+kubectl get pods -n kube-system
+kubectl delete pods kubernetes-dashboard-67989c548-hzmg4 -n kube-system
+kubectl delete pods kubernetes-dashboard-67989c548-hzmg4 -n kube-system --force --grace-period=0
+kubectl get pods -n kube-system
+
+~]# kubectl create ns infra
+
+~]# kubectl create secret docker-registry harbor --docker-server=harbor.od.com --docker-username=admin --docker-password=Harbor12345 -n infra
+
+所有节点
+yum install nfs-utils -y
+
+7-200
+vim /etc/exports
+/data/nfs-volume 10.4.7.0/24(rw,no_root_squash)
+mkdir /data/nfs-volume
+[root@hdss7-200 jenkins]# systemctl start nfs
+[root@hdss7-200 jenkins]# systemctl enable nfs
+
+vim dp.yaml
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: jenkins
+  namespace: infra
+  labels: 
+    name: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      name: jenkins
+  template:
+    metadata:
+      labels: 
+        app: jenkins 
+        name: jenkins
+    spec:
+      volumes:
+      - name: data
+        nfs: 
+          server: hdss7-200
+          path: /data/nfs-volume/jenkins_home
+      - name: docker
+        hostPath: 
+          path: /run/docker.sock
+          type: ''
+      containers:
+      - name: jenkins
+        image: harbor.od.com/infra/jenkins:v2.190.3
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx512m -Xms512m
+        volumeMounts:
+        - name: data
+          mountPath: /var/jenkins_home
+        - name: docker
+          mountPath: /run/docker.sock
+      imagePullSecrets:
+      - name: harbor
+      securityContext: 
+        runAsUser: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxUnavailable: 1
+      maxSurge: 1
+  revisionHistoryLimit: 7
+  progressDeadlineSeconds: 600
+  
+vim svc.yaml
+kind: Service
+apiVersion: v1
+metadata: 
+  name: jenkins
+  namespace: infra
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  selector:
+    app: jenkins
+	
+vim ingress.yaml
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata: 
+  name: jenkins
+  namespace: infra
+spec:
+  rules:
+  - host: jenkins.od.com
+    http:
+      paths:
+      - path: /
+        backend: 
+          serviceName: jenkins
+          servicePort: 80
+		  
+jenkins_home]# cat secrets/initialAdminPassword
+
+作业：
+1、基于RBAC研讨dashboard的sa账户应给如何鉴权
+2、复习二进制安装部署K8S的所有知识，有条件的，推翻整个环境，重新部署一遍
+3、要求下次课前，准备好Jekins环境，插件安装完毕，预习流水线相关的知识
+
