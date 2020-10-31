@@ -87,7 +87,7 @@ spec:
           mountPath: /var/jenkins_home
         - name: docker
           mountPath: /run/docker.sock
-      imagePullSecrets:
+      imagePullSecrets:                      #对应上面定义的secret名称，即拉去镜像的远程代码仓
       - name: harbor
       securityContext: 
         runAsUser: 0
