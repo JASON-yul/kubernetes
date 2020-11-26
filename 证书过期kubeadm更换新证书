@@ -11,7 +11,12 @@ kubeadm config view > /tmp/cluster.yaml
 
 4.更新新证书
 kubeadm alpha certs renew all --config=/tmp/cluster.yaml
-
+或
+（
+kubeadm alpha phase certs apiserver --apiserver-advertise-address ${MASTER_API_SERVER_IP}
+kubeadm alpha phase certs apiserver-kubelet-client
+kubeadm alpha phase certs front-proxy-client
+）
 5.重启各个服务
 docker ps |grep -E 'k8s_kube-apiserver|k8s_kube-controller-manager|k8s_kube-scheduler|k8s_etcd_etcd' | awk -F ' ' '{print $1}' |xargs docker restart
 
@@ -19,9 +24,9 @@ docker ps |grep -E 'k8s_kube-apiserver|k8s_kube-controller-manager|k8s_kube-sche
 for item in `find /etc/kubernetes/pki/  -name "*.crt"`;do openssl x509 -in $item -text -noout| grep Not;echo ======================$item===================;done
 
 7.覆盖配置文件
-rm -rf /root/.kube/
-mkdir /root/.kube/
-cp -i /etc/kubernetes/admin.conf /root/.kube/config
-
+mv $HOME/.kube/config $HOME/.kube/config.old
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
+sudo chmod 777 $HOME/.kube/config
 8.验证
 kubectl get no
