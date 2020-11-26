@@ -1,0 +1,24 @@
+以下内容需在每个master内执行一遍
+
+1.查看正式时间
+for item in `find /etc/kubernetes/pki/  -name "*.crt"`;do openssl x509 -in $item -text -noout| grep Not;echo ======================$item===================;done
+
+2.备份原有证书
+cp -rp /etc/kubernetes /etc/kubernetes.bak
+
+3.生成配置文件
+kubeadm config view > /tmp/cluster.yaml
+
+4.更新新证书
+kubeadm alpha certs renew all --config=/tmp/cluster.yaml
+
+5.重启各个服务
+docker ps |grep -E 'k8s_kube-apiserver|k8s_kube-controller-manager|k8s_kube-scheduler|k8s_etcd_etcd' | awk -F ' ' '{print $1}' |xargs docker restart
+
+6.查看证书时间
+for item in `find /etc/kubernetes/pki/  -name "*.crt"`;do openssl x509 -in $item -text -noout| grep Not;echo ======================$item===================;done
+
+7.覆盖配置文件
+rm -rf /root/.kube/
+mkdir /root/.kube/
+cp -i /etc/kubernetes/admin.conf /root/.kube/config
