@@ -22,3 +22,6 @@ for item in `find /etc/kubernetes/pki/  -name "*.crt"`;do openssl x509 -in $item
 rm -rf /root/.kube/
 mkdir /root/.kube/
 cp -i /etc/kubernetes/admin.conf /root/.kube/config
+
+8.验证
+kubectl get no
