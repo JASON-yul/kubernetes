@@ -75,7 +75,7 @@ named-checkconf
 systemctl restart named
 dig -t A hdss7-12.host.com @10.4.7.11 +short
 ping hdss7-12.host.com
-注：若不同查看每个虚拟机的DNS是否配置成了主机ip：10.4.7.11
+注：若不通查看每个虚拟机的DNS是否配置成了主机ip：10.4.7.11
 
 将Windows内的dns也改为10.4.7.11
 通过cmd，ping hdss7-12.host.com
