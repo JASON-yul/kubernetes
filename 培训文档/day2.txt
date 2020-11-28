@@ -864,12 +864,12 @@ dashboard          A    10.4.7.10                 #vip，访问时都会通过ng
 
 systemctl restart named
 
-hdss7-200
-certs]# (umask 077; openssl genrsa -out dashboard.od.com.key 2048)
+hdss7-200（openssl创建自签发证书）
+certs]# (umask 077; openssl genrsa -out dashboard.od.com.key 2048)                   #创建证书
 
-certs]# openssl req -new -key dashboard.od.com.key -out dashboard.od.com.csr -subj "/CN=dashboard.od.com/C=CN/ST=BJ/L=Beijing/O=OldboyEdu/OU=ops"
+certs]# openssl req -new -key dashboard.od.com.key -out dashboard.od.com.csr -subj "/CN=dashboard.od.com/C=CN/ST=BJ/L=Beijing/O=OldboyEdu/OU=ops"                       #创建证书签发的请求文件
 
-certs]# openssl x509 -req -in dashboard.od.com.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out dashboard.od.com.crt -days 3650
+certs]# openssl x509 -req -in dashboard.od.com.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out dashboard.od.com.crt -days 3650                                                                                 #签发证书
 
 7-11
 mkdir/cd  /etc/nginx/certs/
