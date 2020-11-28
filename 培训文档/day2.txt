@@ -1,74 +1,74 @@
-httpĞ­Òé£º127.0.0.1:8080
-¿çÍøÂçtlls¡¢tsslÍ¨ĞÅ£º10.4.7.21:6443-¡·¹ÒÔØ¶¼vip10.4.7.10µÄ7443ÉÏ£¨L4·´´ú£©
-Ö÷¿Ø½Úµã£ºapisrever¡¢controller-manager¡¢scheduler°ó¶¨ÔÚÒ»Æğ
-etcd×ÔĞĞ²¿Êğ£¬ÆæÊı¸ö£¬¸ß¿ÉÓÃ»úÖÆ
-Ö÷¿Ø½Úµã£ºkubelet¡¢kube-proxy
+httpåè®®ï¼š127.0.0.1:8080
+è·¨ç½‘ç»œtllsã€tsslé€šä¿¡ï¼š10.4.7.21:6443-ã€‹æŒ‚è½½éƒ½vip10.4.7.10çš„7443ä¸Šï¼ˆL4åä»£ï¼‰
+ä¸»æ§èŠ‚ç‚¹ï¼šapisreverã€controller-managerã€schedulerç»‘å®šåœ¨ä¸€èµ·
+etcdè‡ªè¡Œéƒ¨ç½²ï¼Œå¥‡æ•°ä¸ªï¼Œé«˜å¯ç”¨æœºåˆ¶
+ä¸»æ§èŠ‚ç‚¹ï¼škubeletã€kube-proxy
 
-iptables¹æÔò£¬
-¸÷ÖÖÃüÁî£º
+iptablesè§„åˆ™ï¼Œ
+å„ç§å‘½ä»¤ï¼š
 ~]#cfssl-certinfo -cert apiserver.pem
-°Ñapiserver.pem»¹Ô­³ÉJason¸ñÊ½£ºÁĞ³öÖ¤ÊéĞÅÏ¢
+æŠŠapiserver.pemè¿˜åŸæˆJasonæ ¼å¼ï¼šåˆ—å‡ºè¯ä¹¦ä¿¡æ¯
 ~]#cfssl-certinfo -domain www.baidu.com
-ÁĞ³öbaiduµÄÖ¤ÊéĞÅÏ¢
+åˆ—å‡ºbaiduçš„è¯ä¹¦ä¿¡æ¯
 
-Ö¤ÊéÇ©·¢ÈÕÆÚºÍÓĞĞ§ÆÚ
+è¯ä¹¦ç­¾å‘æ—¥æœŸå’Œæœ‰æ•ˆæœŸ
 "not_before": "2020-06-13T11:40:00Z",
 "not_after": "2040-06-08T11:40:00Z",
 
-Ç©·¢Ö¤ÊéÊ±£¬caÖ¤ÊéÊ±²»ÄÜ±äµÄ
+ç­¾å‘è¯ä¹¦æ—¶ï¼Œcaè¯ä¹¦æ—¶ä¸èƒ½å˜çš„
 
-kubectl³ÂÊöÊ½¹ÜÀí£¨ÔöÉ¾¸Ä²é£©
-ÉùÃ÷Ê½:ÒÀÀµÓÚÍ³Ò»×ÊÔ´ÅäÖÃÇåµ¥
+kubectlé™ˆè¿°å¼ç®¡ç†ï¼ˆå¢åˆ æ”¹æŸ¥ï¼‰
+å£°æ˜å¼:ä¾èµ–äºç»Ÿä¸€èµ„æºé…ç½®æ¸…å•
 
-²é¿´Ãû³Æ¿Õ¼ä
+æŸ¥çœ‹åç§°ç©ºé—´
 ~]# kubectl get namespace
 ~]# kubectl get ns
 
-ÁĞ³öÄ³¸öÃû³Æ¿Õ¼äµÄËùÓĞ×ÊÔ´
+åˆ—å‡ºæŸä¸ªåç§°ç©ºé—´çš„æ‰€æœ‰èµ„æº
 ~]# kubectl get all [-n default]
 ~]# kubectl get all -n default
 
-´´½¨Ãû³Æ¿Õ¼ä
+åˆ›å»ºåç§°ç©ºé—´
 ~]# kubectl create ns app
 ~]# kubectl delete namespace app
 
-pod×ÊÔ´£º
+podèµ„æºï¼š
 NAME                 READY   STATUS    RESTARTS   AGE
 pod/nginx-ds-47ltm   1/1     Running   2          16d
 pod/nginx-ds-qqmkh   1/1     Running   1          23d
-service×ÊÔ´£º
+serviceèµ„æºï¼š
 NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
 service/kubernetes   ClusterIP   192.168.0.1      <none>        443/TCP   30d
 service/nginx-ds     ClusterIP   192.168.24.238   <none>        801/TCP   25d
-pod¿ØÖÆÆ÷£º
+podæ§åˆ¶å™¨ï¼š
 NAME                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
 daemonset.apps/nginx-ds   1         1         1       1            1           <none>          27d
 
-´´½¨deploymentpod¿ØÖÆÆ÷£¨Í¨¹ıimageË³±ã½«pod´´½¨£©
-~]# kubectl create deployment nginx-dp --image=harbor.od.com/public/nginx:v1.7.9 -n kube-public £¨daemonset²»ÄÜÓÃ³ÂÊöÊ½ÃüÁî´´½¨£©
+åˆ›å»ºdeploymentpodæ§åˆ¶å™¨ï¼ˆé€šè¿‡imageé¡ºä¾¿å°†podåˆ›å»ºï¼‰
+~]# kubectl create deployment nginx-dp --image=harbor.od.com/public/nginx:v1.7.9 -n kube-public ï¼ˆdaemonsetä¸èƒ½ç”¨é™ˆè¿°å¼å‘½ä»¤åˆ›å»ºï¼‰
 ~]# kubectl get deploy -n kube-public
 ~]# kubectl get deployment -o wide -n kube-public
-ÏêÏ¸²é¿´
+è¯¦ç»†æŸ¥çœ‹
 ~]# kubectl describe deployment nginx-dp -n kube-public
-Name:                   nginx-xx                      £¨pod¿ØÖÆÆ÷Ãû³Æ£©
-Namespace:              kube-public                    £¨ËùÔÚµÄns£©
+Name:                   nginx-xx                      ï¼ˆpodæ§åˆ¶å™¨åç§°ï¼‰
+Namespace:              kube-public                    ï¼ˆæ‰€åœ¨çš„nsï¼‰
 CreationTimestamp:      Fri, 29 May 2020 22:17:40 +0800
-Labels:                 app=nginx-xx                    £¨Ä¬ÈÏlabels£©
-Annotations:            deployment.kubernetes.io/revision: 1  £¨¿ØÖÆµÄÈİÆ÷ÊÇµÚÒ»°æ£©
-Selector:               app=nginx-xx                           £¨±êÇ©Ñ¡ÔñÆ÷£©
-Replicas:               3 desired | 3 updated | 3 total | 0 available | 3 unavailable £¨ÆÚÍû3¸ö£¬3¸öÕı×ÅÔËĞĞ£©
-StrategyType:           RollingUpdate                   £¨¸úĞÂ²ßÂÔ£¬¹ö¶¯·¢²¼£©
+Labels:                 app=nginx-xx                    ï¼ˆé»˜è®¤labelsï¼‰
+Annotations:            deployment.kubernetes.io/revision: 1  ï¼ˆæ§åˆ¶çš„å®¹å™¨æ˜¯ç¬¬ä¸€ç‰ˆï¼‰
+Selector:               app=nginx-xx                           ï¼ˆæ ‡ç­¾é€‰æ‹©å™¨ï¼‰
+Replicas:               3 desired | 3 updated | 3 total | 0 available | 3 unavailable ï¼ˆæœŸæœ›3ä¸ªï¼Œ3ä¸ªæ­£ç€è¿è¡Œï¼‰
+StrategyType:           RollingUpdate                   ï¼ˆè·Ÿæ–°ç­–ç•¥ï¼Œæ»šåŠ¨å‘å¸ƒï¼‰
 
 ~]# kubectl get pods -n kube-public
 ~]# kubectl exec -ti nginx-dp-5dfc689474-x5nhb /bin/bash -n kube-public
 kubectl exec -ti nginx-dp-5dfc689474-x5nhb /bin/bash -n kube-public -- ps -ef|grep 8080
 ~]# kubectl delete pod nginx-dp-5dfc689474-gtfvv -n kube-public [--force --grace-period=0]
-~]# kubectl delete deploy nginx-dp -n kube-public£¨É¾³ıpod¿ØÖÆÆ÷£©
+~]# kubectl delete deploy nginx-dp -n kube-publicï¼ˆåˆ é™¤podæ§åˆ¶å™¨ï¼‰
 
-k8sËÄ´óºËĞÄ×ÊÔ´£ºdeployment¡¢pod¡¢service¡¢ingress
+k8så››å¤§æ ¸å¿ƒèµ„æºï¼šdeploymentã€podã€serviceã€ingress
 
-serviceÎªpodÌá¹©ÎÈ¶¨µÄ½ÓÈëµã£¨endpoint£©£¨cluster-ip£©£¬·ÀÖ¹podÆ¯ÒÆ£¬¼´ÎŞÂÛpod-ipÈçºÎ±ä»Ã£¬cluster-ip²»±ä
-Ö¸¶¨±©Â¶¶Ë¿ÚĞÎÊ½´´½¨service
+serviceä¸ºpodæä¾›ç¨³å®šçš„æ¥å…¥ç‚¹ï¼ˆendpointï¼‰ï¼ˆcluster-ipï¼‰ï¼Œé˜²æ­¢podæ¼‚ç§»ï¼Œå³æ— è®ºpod-ipå¦‚ä½•å˜å¹»ï¼Œcluster-ipä¸å˜
+æŒ‡å®šæš´éœ²ç«¯å£å½¢å¼åˆ›å»ºservice
 ~]# kubectl expose deployment nginx-dp --port=80 -n kube-public
 
 NAME               TYPE        CLUSTER-IP        EXTERNAL-IP   PORT(S)    AGE
@@ -88,12 +88,12 @@ TCP  192.168.171.22:8080 nq
 [root@hdss7-21 ~]# kubectl describe svc nginx -n kube-public
 Name:              nginx-dp
 Namespace:         kube-public
-Labels:            app=nginx-dp                          £¨Í¨¹ı±êÇ©£©
+Labels:            app=nginx-dp                          ï¼ˆé€šè¿‡æ ‡ç­¾ï¼‰
 Annotations:       <none>
-Selector:          app=nginx-dp     £¨Í¨¹ı±êÇ©Ñ¡Ôñ»úÖÆ£¬Ö»ÒªlabelÊÇnginx-dp²¢ÇÒÔÚkube-publicÄÚµÄpod
-                                      ¶¼ÓÃÍ¬Ò»¸öserviceºÍclusterip£©
+Selector:          app=nginx-dp     ï¼ˆé€šè¿‡æ ‡ç­¾é€‰æ‹©æœºåˆ¶ï¼Œåªè¦labelæ˜¯nginx-dpå¹¶ä¸”åœ¨kube-publicå†…çš„pod
+                                      éƒ½ç”¨åŒä¸€ä¸ªserviceå’Œclusteripï¼‰
 Type:              ClusterIP
-IP:                192.168.171.22      £¨¼¯Èºip£¬ĞéÄâip£¬Ö»ÔÚk8s×Ô¼ºµÄÔËËã¼¯ÈºÄÚÊ¹ÓÃ£©
+IP:                192.168.171.22      ï¼ˆé›†ç¾¤ipï¼Œè™šæ‹Ÿipï¼Œåªåœ¨k8sè‡ªå·±çš„è¿ç®—é›†ç¾¤å†…ä½¿ç”¨ï¼‰
 Port:              <unset>  8080/TCP
 TargetPort:        8080/TCP
 Endpoints:         172.7.21.5:8080,172.7.22.3:8080
@@ -123,30 +123,30 @@ IP:                192.168.201.194
 Port:              <unset>  80/TCP
 TargetPort:        80/TCP
 
-À©Èİ£¬½«podÔö¼ÓÖÁÁ½¸ö
+æ‰©å®¹ï¼Œå°†podå¢åŠ è‡³ä¸¤ä¸ª
 ~]# kubectl scale deployment nginx-dp --replicas=2 -n kube-public
 
 ~]# kubectl describe svc nginx-dp -n kube-public
 
 
-k8sµÄÖĞÎÄÉçÇøÍøÖ·
+k8sçš„ä¸­æ–‡ç¤¾åŒºç½‘å€
 http://docs.kubernetes.org.cn
 
-serviceÍ¨¹ıÌØÉ«¹ÜÀí¹¦ÄÜlabels¡¢selector£¬Èç£º
-labels£ºapp=nginx-dp
-selector£ºapp=nginx-dp
-ÄÚ²¿¼¯Èºip
-type£ºclusterip
-ip£º192.168.23.11
+serviceé€šè¿‡ç‰¹è‰²ç®¡ç†åŠŸèƒ½labelsã€selectorï¼Œå¦‚ï¼š
+labelsï¼šapp=nginx-dp
+selectorï¼šapp=nginx-dp
+å†…éƒ¨é›†ç¾¤ip
+typeï¼šclusterip
+ipï¼š192.168.23.11
 
-»ñÈ¡¡¢²é¿´×ÊÔ´ÅäÖÃÇåµ¥
-kubectl get pods podÃû³Æ -o yaml -n kube-system
-kubectl get svc svcÃû³Æ -o yaml -n kube-system
+è·å–ã€æŸ¥çœ‹èµ„æºé…ç½®æ¸…å•
+kubectl get pods podåç§° -o yaml -n kube-system
+kubectl get svc svcåç§° -o yaml -n kube-system
 
-½âÊÍ×ÊÔ´ÅäÖÃÇåµ¥ÀïmetadeµÄº¬Òå£¨yamlÑ§Ï°ÖØÒªÃüÁî£©
+è§£é‡Šèµ„æºé…ç½®æ¸…å•é‡Œmetadeçš„å«ä¹‰ï¼ˆyamlå­¦ä¹ é‡è¦å‘½ä»¤ï¼‰
 kubectl expain service.metadte
 
-»ñÈ¡Í¬Ò»×ÊÔ´ÅäÖÃÇåµ¥
+è·å–åŒä¸€èµ„æºé…ç½®æ¸…å•
 ~]# kubectl get svc nginx-dp -oyaml -n kube-public
 
 apiVersion: v1
@@ -161,7 +161,7 @@ spec:
   ports:
   - port: 8080             
     protocol: TCP
-    targetPort: 8080     £¨°ÑdockerÄÚµÄ8080¶Ë¿ÚÓ³Éä³ÉËŞÖ÷»úµÄ8080¶Ë¿Ú£©
+    targetPort: 8080     ï¼ˆæŠŠdockerå†…çš„8080ç«¯å£æ˜ å°„æˆå®¿ä¸»æœºçš„8080ç«¯å£ï¼‰
   selector:
     app: nginx-dp
   type: ClusterIP
@@ -231,33 +231,33 @@ kind: Service
 metadata:
   labels:
     app: nginx-ds
-  name: nginx-ds        #Ãû³Æ
+  name: nginx-ds        #åç§°
   namespace: default
 spec:
   ports:
-  - port: 80          #±©Â¶¶Ë¿Ú
-    protocol: TCP     #±©Â¶µÄĞ­Òé
+  - port: 80          #æš´éœ²ç«¯å£
+    protocol: TCP     #æš´éœ²çš„åè®®
     targetPort: 80
-  selector:           #¹ØÁªdeamonsetµÄpod¿ØÖÆÆ÷nginx-dsµÄpod
+  selector:           #å…³è”deamonsetçš„podæ§åˆ¶å™¨nginx-dsçš„pod
     app: nginx-ds
   sessionAffinity: None
   type: ClusterIP
   
 ~]# kubectl create -f nginx-ds-svc.yaml 
 
-ÀëÏßĞŞ¸Ä
-~]# kubectl delete svc nginx-ds        £¨³ÂÊöÊ½£©
-~]# kubectl delete -f nginx-dp-svc.yaml£¨ÉùÃ÷Ê½£©
+ç¦»çº¿ä¿®æ”¹
+~]# kubectl delete svc nginx-ds        ï¼ˆé™ˆè¿°å¼ï¼‰
+~]# kubectl delete -f nginx-dp-svc.yamlï¼ˆå£°æ˜å¼ï¼‰
 kubectl apply -f  svc nginx-dp-svc.yaml
 
-ÔÚÏßĞŞ¸Ä£¨Ã»ÓĞ¼ÇÂ¼£©
+åœ¨çº¿ä¿®æ”¹ï¼ˆæ²¡æœ‰è®°å½•ï¼‰
 kubectl edit svc nginx-ds
 
 
 hdss7-21\22
 
-flannelÔ´Âë°üÏÂÔØµØÖ·£¨¹ÜÀípodÍøÂç£©
-https://github.com/coreos/flannel/releases£¨githubÔ´£©
+flannelæºç åŒ…ä¸‹è½½åœ°å€ï¼ˆç®¡ç†podç½‘ç»œï¼‰
+https://github.com/coreos/flannel/releasesï¼ˆgithubæºï¼‰
 
 src]# wget https://github.com/coreos/flannel/releases/download/v0.11.0/flannel-v0.11.0-linux-amd64.tar.gz
 
@@ -277,8 +277,8 @@ cert]# scp hdss7-200:/opt/certs/client-key.pem .
 
 flannel]# vi subnet.env
 
-FLANNEL_NETWORK=172.7.0.0/16  £¨¶¨ÒåpodÍøÂç£©
-FLANNEL_SUBNET=172.7.21.1/24   £¨¶¨Òå×ÓÍø£©
+FLANNEL_NETWORK=172.7.0.0/16  ï¼ˆå®šä¹‰podç½‘ç»œï¼‰
+FLANNEL_SUBNET=172.7.21.1/24   ï¼ˆå®šä¹‰å­ç½‘ï¼‰
 FLANNEL_MTU=1500
 FLANNEL_IPMASQ=false
 
@@ -287,8 +287,8 @@ flannel]# vi flanneld.sh
 
 #!/bin/sh
 ./flanneld \
-  --public-ip=10.4.7.21 \                                                                 £¨±¾ÉíµÄ±©Â¶½Úµã£©
-  --etcd-endpoints=https://10.4.7.12:2379,https://10.4.7.21:2379,https://10.4.7.22:2379 \  £¨etcd½ÓÈëµã£©
+  --public-ip=10.4.7.21 \                                                                 ï¼ˆæœ¬èº«çš„æš´éœ²èŠ‚ç‚¹ï¼‰
+  --etcd-endpoints=https://10.4.7.12:2379,https://10.4.7.21:2379,https://10.4.7.22:2379 \  ï¼ˆetcdæ¥å…¥ç‚¹ï¼‰
   --etcd-keyfile=./cert/client-key.pem \
   --etcd-certfile=./cert/client.pem \
   --etcd-cafile=./cert/ca.pem \
@@ -301,9 +301,9 @@ chmod +x flanneld.sh
 mkdir -p /data/logs/flanneld
 
 etcd]# ./etcdctl set /coreos.com/network/config '{"Network": "172.7.0.0/16", "Backend": {"Type": "host-gw"}}'
- (ÔÚÒ»Ì¨»úÆ÷ÉÏÖ´ĞĞ¾Í¿ÉÒÔ£¬flannelÒÔÀ´ÓÚetcdÖ´ĞĞÍøÂçĞÅÏ¢)
+ (åœ¨ä¸€å°æœºå™¨ä¸Šæ‰§è¡Œå°±å¯ä»¥ï¼Œflannelä»¥æ¥äºetcdæ‰§è¡Œç½‘ç»œä¿¡æ¯)
 
-./etcdctl  mumber list     £¨²é¿´etcd½ÚµãÇé¿ö£©
+./etcdctl  mumber list     ï¼ˆæŸ¥çœ‹etcdèŠ‚ç‚¹æƒ…å†µï¼‰
 
 ~]# vi /etc/supervisord.d/flannel.ini
 
@@ -328,27 +328,27 @@ stdout_capture_maxbytes=1MB                                  ; number of bytes i
 stdout_events_enabled=false                                  ; emit events on stdout writes (default false)
 
 supervisorctl status
-Èô³öÏÖÎÊÌâ£¬µ½ÁíÒ»Ì¨»úÆ÷ÉÏ¹Ø±ÕËùÓĞ·şÎñ£¬ÔÚ½«±¾Ì¨»úÆ÷ÉÏËùÓĞ·şÎñÆô¶¯Ò»ÏÂ£¨¾ßÌå²»Ïê£¬Ó¦¸ÃÊÇ´æÔÚÆô¶¯Ë³Ğò£©
+è‹¥å‡ºç°é—®é¢˜ï¼Œåˆ°å¦ä¸€å°æœºå™¨ä¸Šå…³é—­æ‰€æœ‰æœåŠ¡ï¼Œåœ¨å°†æœ¬å°æœºå™¨ä¸Šæ‰€æœ‰æœåŠ¡å¯åŠ¨ä¸€ä¸‹ï¼ˆå…·ä½“ä¸è¯¦ï¼Œåº”è¯¥æ˜¯å­˜åœ¨å¯åŠ¨é¡ºåºï¼‰
 supervisorctl stop all
 supervisorctl start  all
 supervisorctl start flanneld-7-21
 
-route -n£¨7-22£©£¨22Ïë·ÃÎÊ21£¬ÒªÍ¨¹ı10.4.7.21½øĞĞ·ÃÎÊ£©
+route -nï¼ˆ7-22ï¼‰ï¼ˆ22æƒ³è®¿é—®21ï¼Œè¦é€šè¿‡10.4.7.21è¿›è¡Œè®¿é—®ï¼‰
 Kernel IP routing table
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         10.4.7.1        0.0.0.0         UG    100    0        0 eth0
 10.4.7.0        0.0.0.0         255.255.255.0   U     100    0        0 eth0
 172.7.21.0      10.4.7.21       255.255.255.0   UG    0      0        0 eth0
 172.7.22.0      0.0.0.0         255.255.255.0   U     0      0        0 docker0
-route -n£¨7-21£©
+route -nï¼ˆ7-21ï¼‰
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         10.4.7.1        0.0.0.0         UG    100    0        0 eth0
 10.4.7.0        0.0.0.0         255.255.255.0   U     100    0        0 eth0
 172.7.21.0      0.0.0.0         255.255.255.0   U     0      0        0 docker0
 172.7.22.0      10.4.7.22       255.255.255.0   UG    0      0        0 eth0
-·²ÊÇ172.7.22.0ÍøÂçÍø¹ØÊÇ10.4.7.22£¨Ïàµ±ÓÚÌí¼ÓÁË¾²Ì¬Â·ÓÉ£¬Á½¸ö¾²Ì¬Â·ÓÉÖ¸ÏòÍ¬Ò»¸öÍø¹Ø10.4.7.1£©
+å‡¡æ˜¯172.7.22.0ç½‘ç»œç½‘å…³æ˜¯10.4.7.22ï¼ˆç›¸å½“äºæ·»åŠ äº†é™æ€è·¯ç”±ï¼Œä¸¤ä¸ªé™æ€è·¯ç”±æŒ‡å‘åŒä¸€ä¸ªç½‘å…³10.4.7.1ï¼‰
 
-ÏÂÃæ×ÔĞĞ×öÊµÑé
+ä¸‹é¢è‡ªè¡Œåšå®éªŒ
 ./etcdctl rm   /coreos.com/network/config 
 ./etcdctl get  /coreos.com/network/config 
 
@@ -356,28 +356,28 @@ route del -net 172.7.22.0/24 gw 10.4.7.22
 
 ./etcdctl set /coreos.com/network/config '{"Network": "172.7.0.0/16", "Backend": {"Type": "VxLAN"}}'
 
-./etcdctl set /coreos.com/network/config '{"Network": "172.7.0.0/16", "Backend": {"Type": "VxLAN","Directrouting": true}}'£¨¼æÈİVxLANºÍhost-gw£©
+./etcdctl set /coreos.com/network/config '{"Network": "172.7.0.0/16", "Backend": {"Type": "VxLAN","Directrouting": true}}'ï¼ˆå…¼å®¹VxLANå’Œhost-gwï¼‰
 
-ĞŞ¸Äsnat×ª»»
+ä¿®æ”¹snatè½¬æ¢
 
 ~]# yum install iptables-services -y
 iptables-save |grep -i postrouting
 
-~]# iptables -t nat -D POSTROUTING -s 172.7.21.0/24 ! -o docker0 -j MASQUERADE  £¨É¾£©
+~]# iptables -t nat -D POSTROUTING -s 172.7.21.0/24 ! -o docker0 -j MASQUERADE  ï¼ˆåˆ ï¼‰
 ~]# iptables -t nat -I POSTROUTING -s 172.7.21.0/24 ! -d 172.7.0.0/16 ! -o docker0 -j MASQUERADE  
-£¨ÓÅ»¯£¬Ô­µØÖ·ÊÇ172.7.21.0/24£¬Ä¿±êµØÖ·²»ÊÇ172.7.0.0/16Íø¶Î£¬²¢ÇÒÍøÂç·¢°ü²»ÊÇ´Ódocker0³öÍøµÄ£¬²Å×ösnat×ª»»£©
+ï¼ˆä¼˜åŒ–ï¼ŒåŸåœ°å€æ˜¯172.7.21.0/24ï¼Œç›®æ ‡åœ°å€ä¸æ˜¯172.7.0.0/16ç½‘æ®µï¼Œå¹¶ä¸”ç½‘ç»œå‘åŒ…ä¸æ˜¯ä»docker0å‡ºç½‘çš„ï¼Œæ‰åšsnatè½¬æ¢ï¼‰
 
 
 ~]# iptables-save |grep -i postrouting    
-~]# iptables-save > /etc/sysconfig/iptables             £¨±£´æ¹æÔò£©
+~]# iptables-save > /etc/sysconfig/iptables             ï¼ˆä¿å­˜è§„åˆ™ï¼‰
 ~]# iptables -t fileter -D INPUT/FORWARD -j REJECT --reject-with icmp-host-prohibited
 
-kubectl logs -f podÃû³Æ£¨³ÖĞø¸ú½ø£©
+kubectl logs -f podåç§°ï¼ˆæŒç»­è·Ÿè¿›ï¼‰
 
 
 hdss7-200
 
-ÄÚÍøÇåµ¥µÄhttp·şÎñ£¨ÓÃÓÚ´æ·Å¸÷ÖÖÎÄ¼ş£©
+å†…ç½‘æ¸…å•çš„httpæœåŠ¡ï¼ˆç”¨äºå­˜æ”¾å„ç§æ–‡ä»¶ï¼‰
 /etc/nginx/conf.d/k8s-yaml.od.com.conf
 
 server {
@@ -396,18 +396,18 @@ k8s-yaml           A    10.4.7.200
 
 systemctl restart named
 dig -t A k8s-yaml.od.com @10.4.7.11 +short
-·ÃÎÊk8s-yaml.od.com
+è®¿é—®k8s-yaml.od.com
 
 
-ÅäÖÃcoredns·şÎñ·¢ÏÖ
+é…ç½®corednsæœåŠ¡å‘ç°
 
 hdss7-200
 ~]# docker pull coredns/coredns:1.6.1
 coredns]# docker tag c0f6e815079e harbor.od.com/public/coredns:v1.6.1
 
-¹Ù·½ÎÄ¼ş£ºhttps://github.com/kubernetes/kubernetes/blob/master/cluster/addons/dns/coredns/coredns.yaml.base
+å®˜æ–¹æ–‡ä»¶ï¼šhttps://github.com/kubernetes/kubernetes/blob/master/cluster/addons/dns/coredns/coredns.yaml.base
 
-×¼±¸×ÊÔ´ÅäÖÃÇåµ¥
+å‡†å¤‡èµ„æºé…ç½®æ¸…å•
 cd /data/k8s-yaml/coredns
 rbac.yaml
 
@@ -471,8 +471,8 @@ data:
         log
         health
         ready
-        kubernetes cluster.local 192.168.0.0/16  £¨×Ô½¨dns£©
-        forward . 10.4.7.11                    £¨¼´Ö¸ÏòÉÏ¼¶dns£©
+        kubernetes cluster.local 192.168.0.0/16  ï¼ˆè‡ªå»ºdnsï¼‰
+        forward . 10.4.7.11                    ï¼ˆå³æŒ‡å‘ä¸Šçº§dnsï¼‰
         cache 30
         loop
         reload
@@ -568,15 +568,15 @@ spec:
 ~]# kubectl apply -f http://k8s-yaml.od.com/coredns/dp.yaml
 ~]# kubectl apply -f http://k8s-yaml.od.com/coredns/svc.yaml
 
-~]# dig -t A nginx-dp.kube-public.svc.cluster.local. @192.168.0.2 +short   £¨192.168.0.2×Ô½¨dns£©
+~]# dig -t A nginx-dp.kube-public.svc.cluster.local. @192.168.0.2 +short   ï¼ˆ192.168.0.2è‡ªå»ºdnsï¼‰
 
-corednsÏêÏ¸½âÎö
+corednsè¯¦ç»†è§£æ
 http://ccnuo.com/2019/08/25/CoreDNS%EF%BC%9AKubernetes%E5%86%85%E9%83%A8%E5%9F%9F%E5%90%8D%E8%A7%A3%E6%9E%90%E5%8E%9F%E7%90%86%E3%80%81%E5%BC%8A%E7%AB%AF%E5%8F%8A%E4%BC%98%E5%8C%96%E6%96%B9%E5%BC%8F/
 
-²¿Êğtraefik£¨ingress¿ØÖÆÆ÷µÄÊµÏÖÈí¼ş£©
+éƒ¨ç½²traefikï¼ˆingressæ§åˆ¶å™¨çš„å®ç°è½¯ä»¶ï¼‰
 hdss7-200
 https://github.com/containous/traefik
-£¨Â·¾¶containous¡¢traaefik¡¢tree¡¢1.7¡¢example¡¢k8s£©
+ï¼ˆè·¯å¾„containousã€traaefikã€treeã€1.7ã€exampleã€k8sï¼‰
 
 ~]# docker pull traefik:v1.7.2-alpine
 
@@ -622,7 +622,7 @@ roleRef:
   name: traefik-ingress-controller
 subjects:
 - kind: ServiceAccount
-  name: traefik-ingress-controller          £¨ÊµÏÖingress¹¦ÄÜµÄÒ»¸ö×é¼ş£©
+  name: traefik-ingress-controller          ï¼ˆå®ç°ingressåŠŸèƒ½çš„ä¸€ä¸ªç»„ä»¶ï¼‰
   namespace: kube-system
 
 vim ds.yaml
@@ -638,7 +638,7 @@ spec:
   template:
     metadata:
       labels:
-        k8s-app: traefik-ingress         £¨serviceÍ¨¹ı´Î±êÇ©ÕÒµ½pod£©
+        k8s-app: traefik-ingress         ï¼ˆserviceé€šè¿‡æ¬¡æ ‡ç­¾æ‰¾åˆ°podï¼‰
         name: traefik-ingress
     spec:
       serviceAccountName: traefik-ingress-controller
@@ -647,10 +647,10 @@ spec:
       - image: harbor.od.com/public/traefik:v1.7.2
         name: traefik-ingress
         ports:
-        - name: controller    £¨ÊµÏÖingress¹¦ÄÜµÄÒ»¸ö×é¼şingress-conroller£©
-          containerPort: 80            £¨°ÑingressµÄ80Ó³Éäµ½ËŞÖ÷»úµÄ81¶Ë¿Ú£©
+        - name: controller    ï¼ˆå®ç°ingressåŠŸèƒ½çš„ä¸€ä¸ªç»„ä»¶ingress-conrollerï¼‰
+          containerPort: 80            ï¼ˆæŠŠingressçš„80æ˜ å°„åˆ°å®¿ä¸»æœºçš„81ç«¯å£ï¼‰
           hostPort: 81
-        - name: admin-web             £¨traefikµÄ¹ÜÀíÒ³Ãæ£©
+        - name: admin-web             ï¼ˆtraefikçš„ç®¡ç†é¡µé¢ï¼‰
           containerPort: 8080
         securityContext:
           capabilities:
@@ -663,14 +663,14 @@ spec:
         - --kubernetes
         - --logLevel=INFO
         - --insecureskipverify=true
-        - --kubernetes.endpoint=https://10.4.7.10:7443       £¨vip£©
+        - --kubernetes.endpoint=https://10.4.7.10:7443       ï¼ˆvipï¼‰
         - --accesslog
         - --accesslog.filepath=/var/log/traefik_access.log
         - --traefiklog
         - --traefiklog.filepath=/var/log/traefik.log
         - --metrics.prometheus
 		
-vim svc.yaml                      £¨serviceÊÇÍ¨¹ıkube-proxy×é¼şÊµÏÖÍøÂç³ĞÔØµÄ£©
+vim svc.yaml                      ï¼ˆserviceæ˜¯é€šè¿‡kube-proxyç»„ä»¶å®ç°ç½‘ç»œæ‰¿è½½çš„ï¼‰
 
 kind: Service
 apiVersion: v1
@@ -678,7 +678,7 @@ metadata:
   name: traefik-ingress-service
   namespace: kube-system
 spec:
-  selector:                            £¨serviceÍ¨¹ıselectorÕÒµ½¶ÔÓ¦µÄpod£©
+  selector:                            ï¼ˆserviceé€šè¿‡selectoræ‰¾åˆ°å¯¹åº”çš„podï¼‰
     k8s-app: traefik-ingress
   ports:
     - protocol: TCP
@@ -699,12 +699,12 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: traefik.od.com                        £¨traeffikµÄÓòÃû£¬Ïàµ±ÓÚnginxµÄservername£©
+  - host: traefik.od.com                        ï¼ˆtraeffikçš„åŸŸåï¼Œç›¸å½“äºnginxçš„servernameï¼‰
     http:
       paths:
-      - path: /                                 £¨Ò»¸öÁĞ±í£¬Ïàµ±ÓÚlocalhost£©
+      - path: /                                 ï¼ˆä¸€ä¸ªåˆ—è¡¨ï¼Œç›¸å½“äºlocalhostï¼‰
         backend:
-          serviceName: traefik-ingress-service  £¨¶ÔÓ¦serviceµÄtraefik-ingress-service£¬Ïàµ±ÓÚprocpass£©
+          serviceName: traefik-ingress-service  ï¼ˆå¯¹åº”serviceçš„traefik-ingress-serviceï¼Œç›¸å½“äºprocpassï¼‰
           servicePort: 8080
 		  
 kubectl apply -f http://k8s-yaml.od.com/traefik/rbac.yaml
@@ -713,8 +713,8 @@ kubectl apply -f http://k8s-yaml.od.com/traefik/svc.yaml
 kubectl apply -f http://k8s-yaml.od.com/traefik/ingress.yaml
 
 
-×¢£ºerror: error converting YAML to JSON: yaml: line 15: did not find expected key
-Õâ¸öÎÊÌâ£¬µÄ±¨´í³öÏÖÔÚÎÄ¼ş±àĞ´ÉÏÃæÌáÊ¾15ĞĞËùÒÔĞèÒª×Ô¼ºÔÚ14 15 16 ĞĞ²é¿´±àĞ´ÒÔ¼°¿Õ¸ñµÄÎÊÌâ
+æ³¨ï¼šerror: error converting YAML to JSON: yaml: line 15: did not find expected key
+è¿™ä¸ªé—®é¢˜ï¼Œçš„æŠ¥é”™å‡ºç°åœ¨æ–‡ä»¶ç¼–å†™ä¸Šé¢æç¤º15è¡Œæ‰€ä»¥éœ€è¦è‡ªå·±åœ¨14 15 16 è¡ŒæŸ¥çœ‹ç¼–å†™ä»¥åŠç©ºæ ¼çš„é—®é¢˜
 kubectl get pods -n kube-system
 
 7-11/12
@@ -724,7 +724,7 @@ upstream default_backend_traefik {
     server 10.4.7.22:81    max_fails=3 fail_timeout=10s;
 }
 server {
-    server_name *.od.com;               £¨·ºÓòÃûÆ¥Åä£¬½«ËùÓĞµÄx.od.comÈ«²¿¶ªµ½ingress×ÊÔ´ÅäÖÃÀïÈ¥£©
+    server_name *.od.com;               ï¼ˆæ³›åŸŸååŒ¹é…ï¼Œå°†æ‰€æœ‰çš„x.od.comå…¨éƒ¨ä¸¢åˆ°ingressèµ„æºé…ç½®é‡Œå»ï¼‰
   
     location / {
         proxy_pass http://default_backend_traefik;
@@ -734,7 +734,7 @@ server {
 }
 
 
-Ìí¼Ó  traefik   A   10.4.7.11
+æ·»åŠ   traefik   A   10.4.7.11
 https://github.com/kubernetes/kubernetes/blob/master/cluster/addons/dashboard/dashboard-rbac.yaml
 
 ~]# docker pull k8scn/kubernetes-dashboard-amd64:v1.8.3
@@ -795,11 +795,11 @@ spec:
       containers:
       - name: kubernetes-dashboard
         image: harbor.od.com/public/dashboard:v1.8.3
-        resources:
-          limits:
+        resources:                      
+          limits:                     #é™åˆ¶å®¹å™¨å¯åŠ¨æœ€å¤šå ç”¨çš„èµ„æº
             cpu: 100m
             memory: 300Mi
-          requests:
+          requests:                     #å®¹å™¨èµ·æ¥éœ€è¦å¤šå°‘èµ„æº
             cpu: 50m
             memory: 100Mi
         ports:
@@ -807,15 +807,15 @@ spec:
           protocol: TCP
         args:
           # PLATFORM-SPECIFIC ARGS HERE
-          - --auto-generate-certificates
-        volumeMounts:
+          - --auto-generate-certificates        #å¯åŠ¨é•œåƒå‚æ•°ï¼Œç‹¬ç«‹äº‹åŠ¡ï¼Œè‡ªåŠ¨ç”Ÿæˆè¯ä¹¦
+        volumeMounts:                         #å®¹å™¨æŒ‚è½½çš„æ•°æ®å·
         - name: tmp-volume
           mountPath: /tmp
-        livenessProbe:
+        livenessProbe:                        #å®¹å™¨æ¢é’ˆï¼Œå­˜æ´»æ€§æ¢é’ˆï¼Œç”¨æ¥åˆ¤æ–­å®¹å™¨åœ¨k8sç¯å¢ƒæ˜¯å¦æ­£å¸¸è¿è¡Œ
           httpGet:
             scheme: HTTPS
             path: /
-            port: 8443
+            port: 8443                           #æ¢æµ‹å®¹å™¨é‡Œçš„8443ç«¯å£ï¼Œå¦‚æœ8443ç«¯å£å­˜åœ¨åˆ™è¯æ˜podæˆ–è€…ï¼Œå¦åˆ™è§¦å‘è‡ªæ„ˆæœºåˆ¶
           initialDelaySeconds: 30
           timeoutSeconds: 30
       volumes:
