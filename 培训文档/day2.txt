@@ -128,7 +128,6 @@ TargetPort:        80/TCP
 
 ~]# kubectl describe svc nginx-dp -n kube-public
 
-
 k8s的中文社区网址
 http://docs.kubernetes.org.cn
 
@@ -165,7 +164,6 @@ spec:
   selector:
     app: nginx-dp
   type: ClusterIP
-
 
 ~]# kubectl get pods nginx-dp-5dfc689474-f2bvt -o yaml -n kube-public
 
@@ -253,7 +251,6 @@ kubectl apply -f  svc nginx-dp-svc.yaml
 在线修改（没有记录）
 kubectl edit svc nginx-ds
 
-
 hdss7-21\22
 
 flannel源码包下载地址（管理pod网络）
@@ -284,7 +281,6 @@ FLANNEL_IPMASQ=false
 
 flannel]# vi flanneld.sh 
 
-
 #!/bin/sh
 ./flanneld \
   --public-ip=10.4.7.21 \                                                                 （本身的暴露节点）
@@ -306,7 +302,6 @@ etcd]# ./etcdctl set /coreos.com/network/config '{"Network": "172.7.0.0/16", "Ba
 ./etcdctl  mumber list     （查看etcd节点情况）
 
 ~]# vi /etc/supervisord.d/flannel.ini
-
 
 [program:flanneld-7-21]
 command=/opt/flannel/flanneld.sh                             ; the program (relative uses PATH, can take args)
@@ -373,7 +368,6 @@ iptables-save |grep -i postrouting
 ~]# iptables -t fileter -D INPUT/FORWARD -j REJECT --reject-with icmp-host-prohibited
 
 kubectl logs -f pod名称（持续跟进）
-
 
 hdss7-200
 
@@ -712,7 +706,6 @@ kubectl apply -f http://k8s-yaml.od.com/traefik/ds.yaml
 kubectl apply -f http://k8s-yaml.od.com/traefik/svc.yaml
 kubectl apply -f http://k8s-yaml.od.com/traefik/ingress.yaml
 
-
 注：error: error converting YAML to JSON: yaml: line 15: did not find expected key
 这个问题，的报错出现在文件编写上面提示15行所以需要自己在14 15 16 行查看编写以及空格的问题
 kubectl get pods -n kube-system
@@ -769,7 +762,6 @@ subjects:
   namespace: kube-system
   
 dp.yaml
-
 
 apiVersion: apps/v1
 kind: Deployment
@@ -828,7 +820,6 @@ spec:
 		
 svc.yaml
 
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -844,10 +835,8 @@ spec:
   ports:
   - port: 443
     targetPort: 8443
-	
-	
+		
 ingress.yaml
-
 
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -871,11 +860,15 @@ dns                A    10.4.7.11
 harbor             A    10.4.7.200
 k8s-yaml           A    10.4.7.200
 traefik            A    10.4.7.10
-dashboard          A    10.4.7.10
+dashboard          A    10.4.7.10                 #vip，访问时都会通过nginx负载均衡的抛到后端的ingresscontroller上
+
+systemctl restart named
 
 hdss7-200
 certs]# (umask 077; openssl genrsa -out dashboard.od.com.key 2048)
+
 certs]# openssl req -new -key dashboard.od.com.key -out dashboard.od.com.csr -subj "/CN=dashboard.od.com/C=CN/ST=BJ/L=Beijing/O=OldboyEdu/OU=ops"
+
 certs]# openssl x509 -req -in dashboard.od.com.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out dashboard.od.com.crt -days 3650
 
 7-11
@@ -913,9 +906,9 @@ conf]# kubectl describe secret kubernetes-dashboard-admin-token-fm4hf -n kube-sy
 
 eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC1hZG1pbi10b2tlbi1xa2RjZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjMxYWNlNDJkLTU2YWUtNDM1Yy1iYzhlLWYyMTgzMDQyNmZjYiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlLXN5c3RlbTprdWJlcm5ldGVzLWRhc2hib2FyZC1hZG1pbiJ9.kEIvh1uAzNdkYK12ro-HgWaK3YoElFmlULUDpIGvKJb1DQl5u9kED_Ii5w4WwuRIcTVYdfp9gGPXpUfDyLiutkUaLCh-9dvaVaANbm5qeWNyvJkAllhMw8FWjXn2p_wulndbJlpY-Tgg2uYQPzfhMftuCUek0ECyeVEozw9CMABSPq6u3XPlPZUkRoq8TUA-NIFOY0fD490B2hYWWeeMijMh5kGULa84GPTm_LsSBwdOX45I2QwlwOXfcVq6OPBFZdk37ISKEcD7qx9xFn-vKEiskwiN80HHXuX7C0ZTIzo6R9Er8HaSWTHgMk9AbKO26tTZobhw0RURwRUOaj7LKA
 
-dashboard]# cat rbac-minimal.yaml 
+dashboard]# cat rbac-minimal.yaml              #rbac配置用户账户和权限，基于角色的访问控制，先绑定角色，再赋予权限
 apiVersion: v1
-kind: ServiceAccount
+kind: ServiceAccount                          #声明创建服务账户
 metadata:
   labels:
     k8s-app: kubernetes-dashboard
@@ -923,7 +916,7 @@ metadata:
   name: kubernetes-dashboard
   namespace: kube-system
 ---
-kind: Role
+kind: Role                                     #定义一个role普通角色，只对指定的名称空间有效，clusterRole集群角色
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
@@ -931,7 +924,7 @@ metadata:
     addonmanager.kubernetes.io/mode: Reconcile
   name: kubernetes-dashboard-minimal
   namespace: kube-system
-rules:
+rules:                                       #定义规则    
   # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
 - apiGroups: [""]
   resources: ["secrets"]
@@ -953,7 +946,7 @@ rules:
   verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: RoleBinding                  #绑定角色操作，把上面的role角色和上面声明的ServiceAccount服务账户关联起来，另一种对应为clusterRoleBinding
 metadata:
   name: kubernetes-dashboard-minimal
   namespace: kube-system
@@ -972,29 +965,26 @@ subjects:
 mkdir  /data/k8s-yaml/dashboard/heapster
 heapster]# vi rbac.yaml
 
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: heapster
+  name: heapster                                 #集群里默认有的账户
   namespace: kube-system
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: heapster
+  name: heapster                             
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: ClusterRole                         #默认的集群角色，集群管理员
   name: system:heapster
 subjects:
 - kind: ServiceAccount
   name: heapster
   namespace: kube-system
 
-
 heapster]# vi dp.yaml
-
 
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -1019,7 +1009,6 @@ spec:
         - --source=kubernetes:https://kubernetes.default
 		
 heapster]# vi svc.yaml
-
 
 apiVersion: v1
 kind: Service
