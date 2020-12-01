@@ -800,7 +800,7 @@ spec:
         args:
           # PLATFORM-SPECIFIC ARGS HERE
           - --auto-generate-certificates        #启动镜像参数，独立事务，自动生成证书
-        volumeMounts:                         #容器挂载的数据卷
+        volumeMounts:                         #容器内挂载的数据卷，下面的volumes是node节点挂载的数据卷，彼此对应挂载
         - name: tmp-volume
           mountPath: /tmp
         livenessProbe:                        #容器探针，存活性探针，用来判断容器在k8s环境是否正常运行
