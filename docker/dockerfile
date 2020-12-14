@@ -9,4 +9,8 @@ WORKDIR $WWW
 ADD index.html $WWW/index.html
 ADD demo.od.com.conf $CONF/demo.od.com.conf
 EXPOSE 80
-CMD ["nginx","-g","daemon off;"]
+CMD ["nginx","-g","daemon off;"]     #会被启动命令覆盖
+
+或ENTRYPOINT  ["nginx","-g","daemon off;"]  #不会被启动命令覆盖
+
+注：dockerfile文件内调用脚本不能用nohup xxx &，需要直接和docker一起启动
