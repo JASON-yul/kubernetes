@@ -1,0 +1,56 @@
+https://www.cnblogs.com/janeysj/p/11615463.html
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: xxxx
+  labels:
+    k8s-app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: log
+      enabled: true
+      paths:
+        - ${xxxxx}
+      encoding: utf-8
+      max_bytes: 10485760
+      harvester_buffer_size: 102400  
+      scan_frequency: 3s
+      #tail_files: true
+      multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+      multiline.negate: true
+      multiline.match: after
+    
+    filebeat.config.modules:
+      path: ${xxxxx}/modules.d/*.yml
+      reload.enabled: false
+      
+    name: "${xxxxx}"
+    tags: "${xxxxx}"
+    
+    output.kafka:
+      enabled: true
+      hosts: "${xxxxx}"
+      topic: ${xxxxx}
+      partition.round_robin:
+        reachable_only: false
+      required_acks: 1
+      compression: gzip
+      compression_level: 4
+      max_message_bytes: 10000000
+      worker: 8
+      keep_alive: 300
+      timeout: 5
+    
+    logging.level: info
+    logging.to_files: true
+    logging.files:
+      path: ${xxxxx}
+      name: filebeat.log
+      keepfiles: 7
+      permissions: 0644
+      
+上面xxxx均为变量
