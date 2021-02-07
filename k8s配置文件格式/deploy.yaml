@@ -91,9 +91,9 @@ spec:
       name: example-volume-config  #ConfigMap中名称
       items:
       - key: log-script           #ConfigMap中的Key
-        path: path/to/log-script  #指定目录下的一个相对路径path/to/log-script
+        path: path/to/log-script  #指定目录下的一个相对路径path/to/log-script,即/any/path/it/will/be/replaced/to/log-script
       - key: backup-script        #ConfigMap中的Key
-        path: path/to/backup-script  #指定目录下的一个相对路径path/to/backup-script
+        path: path/to/backup-script  #指定目录下的一个相对路径path/to/backup-script,即/any/path/it/will/be/replaced/to/backup-script
   - name: nfs-client-root         #供挂载NFS存储类型
     nfs:
       server: 10.42.0.55          #NFS服务器地址
