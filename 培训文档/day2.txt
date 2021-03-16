@@ -713,14 +713,14 @@ kubectl get pods -n kube-system
 7-11/12
 vim /etc/nginx/conf.d/od.com.conf
 upstream default_backend_traefik {
-    server 10.4.7.21:81    max_fails=3 fail_timeout=10s;
+    server 10.4.7.21:81    max_fails=3 fail_timeout=10s;           （当访问url为*.od.com时会自动转到10.4.7.21:81或10.4.7.22:81地址上）
     server 10.4.7.22:81    max_fails=3 fail_timeout=10s;
 }
 server {
     server_name *.od.com;               （泛域名匹配，将所有的x.od.com全部丢到ingress资源配置里去）
   
     location / {
-        proxy_pass http://default_backend_traefik;
+        proxy_pass http://default_backend_traefik;   （当访问url为*.od.com/时会自动转到http://default_backend_traefik地址上）
         proxy_set_header Host       $http_host;
         proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
     }
