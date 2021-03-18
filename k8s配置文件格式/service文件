@@ -1,0 +1,17 @@
+---
+apiVersion: v1 # v1是service的apiversion
+kind: Service # 当前资源的类型为 Service。
+metadata:
+  name: httpd-svc # Service 的名字为 httpd-svc。
+spec:
+  type: NodePort       集群外部可以通过clusterIP访问service，即curl clusterIP通
+  selector: # elector 指明挑选那些 label 为 run: httpd 的 Pod 作为 Service 的后端。
+    run: httpd
+  ports: # 将 Service 的 8080 端口映射到 Pod 的 80 端口，使用 TCP 协议。
+  - protocol: TCP
+    port: 8080
+    targetPort: 80
+  type: ClusterIP                                                     
+  
+  注：假如不配置type: NodePort，只能在集群内部访问service，即curl clusterIP通
+                                      集群外部访问service，即curl clusterIP不通
