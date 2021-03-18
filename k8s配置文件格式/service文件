@@ -14,4 +14,4 @@ spec:
   type: ClusterIP                                                     
   
   注：假如不配置type: NodePort，只能在集群内部访问service，即curl clusterIP通
-                                      集群外部访问service，即curl clusterIP不通
+                                     集群外部访问service，即curl clusterIP不通
