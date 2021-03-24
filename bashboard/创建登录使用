@@ -1,0 +1,3 @@
+详细参见https://blog.csdn.net/qq_38774492/article/details/107940372
+注：第四部的‘访问url：https://13x.1xx.48.xxx:32740/’
+    此url即为安装的k8smaster主机地址，访问时必须添加‘https://’ 和对应端口‘32740’
