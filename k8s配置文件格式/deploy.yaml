@@ -7,14 +7,18 @@ metadata:
     app: cango-demo              #标签
 spec:
   replicas: 3
+#  selector:        通过selector字段来选择后端pod（使用matchLabels来过滤标签）
+#    matchLabels:
+#      type: web-server
    strategy:
-    rollingUpdate:  ##由于replicas为3,则整个升级,pod个数在2-4个之间
-      maxSurge: 1      #滚动升级时会先启动1个pod
-      maxUnavailable: 1 #滚动升级时允许的最大Unavailable的pod个数
-  template:         
+    rollingUpdate:       #由于replicas为3,则整个升级,pod个数在2-4个之间
+      maxSurge: 1        #滚动升级时会先启动1个pod
+      maxUnavailable: 1  #滚动升级时允许的最大Unavailable的pod个数，表示为滚动更新，并且pod最大的不可用数量为1，也就是一个pod一个pod的滚动更新更新。
+  template:              #默认情况下，deployment只有在template字段发生改变时才会触发deployment更新
     metadata:
       labels:
         app: cango-demo  #模板名称必填
+#        type: web-server  
     sepc: #定义容器模板，该模板可以包含多个容器
       containers:                                                                   
         - name: cango-demo                                                           #镜像名称
