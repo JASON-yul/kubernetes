@@ -1,0 +1,18 @@
+详细参考文档：https://www.ilanni.com/?p=14501
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /          #重定向指向跟
+  name: test-gateway
+  namespace: italm
+spec:
+  rules:
+  - host: test.rnd.buildcenter.com      #域名
+    http:
+      paths:
+      - backend:
+          serviceName: test-gateway      #对应service的name
+          servicePort: 8080              #此端口与调用pod内的服务端口一致
+        path: /test                      #访问test.rnd.buildcenter.com/test
