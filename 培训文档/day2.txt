@@ -586,7 +586,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: traefik-ingress-controller
+  name: traefik-ingress-controller          #创建角色traefik-ingress-controller，并在resources资源下授予verbs下的列举的权限
 rules:
   - apiGroups:
       - ""
@@ -610,7 +610,7 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: traefik-ingress-controller
+  name: traefik-ingress-controller        #把下面的服务用户ClusterRole和集群角色ServiceAccount通过ClusterRoleBinding关联起来
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -737,7 +737,7 @@ https://github.com/kubernetes/kubernetes/blob/master/cluster/addons/dashboard/da
 rbac.yaml
 
 apiVersion: v1
-kind: ServiceAccount
+kind: ServiceAccount                           #创建服务角色
 metadata:
   labels:
     k8s-app: kubernetes-dashboard
@@ -746,7 +746,7 @@ metadata:
   namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: ClusterRoleBinding               ##把下面的服务用户ClusterRole和集群角色ServiceAccount通过ClusterRoleBinding关联起来
 metadata:
   name: kubernetes-dashboard-admin
   namespace: kube-system
@@ -756,7 +756,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cluster-admin
+  name: cluster-admin                     #集群默认角色，默认赋予所有权限
 subjects:
 - kind: ServiceAccount
   name: kubernetes-dashboard-admin
@@ -1028,4 +1028,5 @@ spec:
     targetPort: 8082
   selector:
     k8s-app: heapster
+	
 	
