@@ -1,0 +1,8 @@
+参考链接：https://github.com/gjmzj/kubeasz
+一、ingress详解
+
+K8s集群对外暴露服务的方式目前只有三种：loadblancer、nodeport、ingress。前两种熟悉起来比较快，而且使用起来也比较方便，在此就不进行介绍了。
+下面详细讲解下ingress这个服务，ingress由两部分组成：ingress controller和ingress服务。
+其中ingress controller目前主要有两种：基于nginx服务的ingress controller和基于traefik的ingress controller。
+由于对nginx比较熟悉，而且需要使用TCP负载，所以在此我们选择的是基于nginx服务的ingress controller
+入口控制
