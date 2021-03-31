@@ -27,7 +27,7 @@ docker pull tomcat:alpine
 
 3.2 创建namespace
 
-1.#cat >yl-namespace.yaml << “EOF”
+3.2.1 #cat >yl-namespace.yaml << “EOF”
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -36,16 +36,17 @@ metadata:
     name: yl-namespace
  EOF
  
-2.创建ns    
+3.2.2 创建ns    
 #kubectl apply -f yl-namespace.yml –record
 namespace/yl-namespace created
 
-3.查询创建的yl-namespace
+3.2.3 查询创建的yl-namespace
 #kubectl get ns
 yl-namespace   Active 6s
 
 3.3 创建service
-1.#cat > yl-httpd-service.yml << “EOF”
+
+3.3.1 #cat > yl-httpd-service.yml << “EOF”
 apiVersion: v1
 kind: Service
 metadata:
@@ -64,9 +65,58 @@ spec:
 注：在yl-httpd-service.yml文件中，我们在yl-namespace这个ns中，定义一个名为yl-httpd-svc的Service，并且使用NodePort这个service类型，使用32080端口对外提供访问端口。
     同时这个yml文件中，我们也使用selector来选择后端的Deployment，在此我们选择的是yl-httpd-dm（对应后面的deploy名称）。
 
-2. 创建service
+3.3.2 创建service
 #kubectl apply -f yl-service.yaml
 service/yl-httpd-svc created
 
-3.查询创建的service
+3.3.3 查询创建的service
+kubectl get service -n yl-namespace
 yl-httpd-svc   NodePort   192.8.241.76   <none>        80:32080/TCP   13s
+注：service分配的ip为192.8.241.76，此ip为k8s集群内部地址，外部是无法访问的。
+
+3.4 创建deployment
+
+3.4.1cat > yl-httpd-deployment.yml << “EOF”
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yl-httpd
+  namespace: yl-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+     app: yl-httpd-dm
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: yl-httpd-dm
+    spec:
+      terminationGracePeriodSeconds: 60
+      restartPolicy: Always
+      containers:
+      - name: yl-httpd
+        image: httpd:alpine
+        imagePullPolicy: Always
+
+注：在yl-httpd-deployment.yml这个文件中，我们在yl-namespace中，定义一个名为yl-httpd的Deployment，并且定义了一个yl-httpd-dm的labels。
+   这样yl-httpd-svc这个Service就和yl-httpd这个Deployment关联起来了。
+   同时在这个yml文件中，我们也定义了该pod的发布策略RollingUpdate滚动发布，以及副本集个数replicas: 2。
+ 
+3.4.2 创建deploy
+# kubectl apply -f yl-deploy.yaml
+deployment.apps/yl-httpd created
+
+3.4.3 查询创建的deploy
+#kubectl get deploy -n yl-namespace -owide
+NAME       READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES         SELECTOR
+yl-httpd   2/2     2            2           11m   yl-httpd     httpd:alpine   app=yl-httpd-dm
+查询对用的pod
+# kubectl get pod -n yl-namespace -owide
+NAME                        READY   STATUS    RESTARTS   AGE   IP              NODE    NOMINATED NODE   READINESS GATES
+yl-httpd-5cb84fb46f-lt7kc   1/1     Running   0          11m   192.17.211.22   node4   <none>           <none>
+yl-httpd-5cb84fb46f-vxbn6   1/1     Running   0          11m   192.26.28.5     node3   <none>           <none>
+
