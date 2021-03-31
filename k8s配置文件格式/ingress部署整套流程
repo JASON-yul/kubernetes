@@ -1,8 +1,20 @@
 参考链接：https://github.com/gjmzj/kubeasz
+
 一、ingress详解
 
+1.规划介绍
 K8s集群对外暴露服务的方式目前只有三种：loadblancer、nodeport、ingress。前两种熟悉起来比较快，而且使用起来也比较方便，在此就不进行介绍了。
 下面详细讲解下ingress这个服务，ingress由两部分组成：ingress controller和ingress服务。
 其中ingress controller目前主要有两种：基于nginx服务的ingress controller和基于traefik的ingress controller。
-由于对nginx比较熟悉，而且需要使用TCP负载，所以在此我们选择的是基于nginx服务的ingress controller
-入口控制
+由于对nginx比较熟悉，而且需要使用TCP负载，所以在此我们选择的是基于nginx服务的ingress controller。
+
+2.参考社区
+k8s社区提供的ingress，github地址如下：https://github.com/kubernetes/ingress-nginx
+nginx社区提供的ingress，github地址如下：https://github.com/nginxinc/kubernetes-ingress
+
+二、ingress的工作原理
+
+ingress contronler通过与k8s的api进行交互，动态的去感知k8s集群中ingress服务规则的变化，然后读取它，并按照定义的ingress规则，转发到k8s集群中对应的service。
+而这个ingress规则写明了哪个域名对应k8s集群中的哪个service，然后再根据ingress-controller中的nginx配置模板，生成一段对应的nginx配置。
+然后再把该配置动态的写到ingress-controller的pod里，该ingress-controller的pod里面运行着一个nginx服务，控制器会把生成的nginx配置写入到nginx的配置文件中，然后reload一下，使其配置生效。
+以此来达到域名分配置及动态更新的效果。
