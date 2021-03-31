@@ -120,3 +120,21 @@ NAME                        READY   STATUS    RESTARTS   AGE   IP              N
 yl-httpd-5cb84fb46f-lt7kc   1/1     Running   0          11m   192.17.211.22   node4   <none>           <none>
 yl-httpd-5cb84fb46f-vxbn6   1/1     Running   0          11m   192.26.28.5     node3   <none>           <none>
 
+注：这里我们看到有两个yl-httpd pod运行在node4和node3节点，而且pod里面的IP地址也分别是192.17.211.22和192.26.28.5
+这里面需要注意下每个pod所被分配的IP地址，是根据该pod所在node节点响应的网卡的IP地址段来分配的。
+
+3.4.4 到node节点查看对外暴露的32080端口
+#ssh node3
+#netstat -tunlp|grep 32080
+tcp        0      0 0.0.0.0:32080           0.0.0.0:*               LISTEN      11000/kube-proxy
+注：我们可以很明显的看出node节点已经监听了我们在yl-httpd-service.yml文件中配置的yl-httpd-svc的NodePort对外的映射端口32080。
+
+3.4.5 访问httpd服务
+http://node3:32080
+显示It works!
+
+注：我们可以很明显的看出，yl-httpd-svc这个service已经正常对外提供服务，说明我们以上的操作都是正常的。
+
+四、ingress配置实操
+注意：service、deployment、ingress是区分namespace的。
+ingress可以自动感知后端应用，这里就不需要查看httpd服务是在那个节点运行了。
