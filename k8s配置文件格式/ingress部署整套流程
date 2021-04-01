@@ -138,3 +138,88 @@ http://node3:32080
 四、ingress配置实操
 注意：service、deployment、ingress是区分namespace的。
 ingress可以自动感知后端应用，这里就不需要查看httpd服务是在那个节点运行了。
+
+1.安装配置ingress-controller
+下载https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider/aws/deploy.yaml,并拷贝到yl-nginx-ingress-controllor.yaml中
+
+2.启用hostNetwork网络
+hostNetwork网络，这是一种直接定义Pod网络的方式。
+如果在Pod中使用hostNetwork:true配置网络，那么Pod中运行的应用程序可以直接使用node节点的端口，这样node节点主机所在网络的其他主机，都可以通过该端口访问到此应用程序。
+
+在yl-nginx-ingress-controllor.yaml文件中添加hostNetwork: true即可
+.......
+  app.kubernetes.io/component: controller
+---
+# Source: ingress-nginx/templates/controller-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    helm.sh/chart: ingress-nginx-3.23.0
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/version: 0.44.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: controller
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/instance: ingress-nginx
+      app.kubernetes.io/component: controller
+  revisionHistoryLimit: 10
+  minReadySeconds: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/instance: ingress-nginx
+        app.kubernetes.io/component: controller
+    spec:
+      hostNetwork: true                      
+      nodeSelector:
+        nginx: "nginx"
+      dnsPolicy: ClusterFirst
+      containers:
+......
+下面是ingress-controller监听端口，80,443
+    failureThreshold: 3
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+            - name: webhook
+              containerPort: 8443
+              protocol: TCP
+注：nginx-ingress-controller默认负载的是http协议。
+
+3.指定node节点配置ingress-controller（也可以不配置）
+nginx-ingress-controller会随意选择一个node节点运行pod，为此需要我们把nginx-ingress-controller运行到指定的node节点上。
+首先需要给需要运行nginx-ingress-controller的node节点打标签，在此我们把nginx-ingress-controller运行在node1这个node节点上。
+# kubectl label node node1 nginx=nignx
+node/node1 labeled
+
+# kubectl get nodes --show-labels
+NAME      STATUS   ROLES    AGE    VERSION   LABELS
+master2   Ready    master   114d   v1.18.5   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=master2,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+node1     Ready    <none>   114d   v1.18.5   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=node1,kubernetes.io/os=linux,nginx=nignx
+node2     Ready    <none>   114d   v1.18.5   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=node2,kubernetes.io/os=linux
+
+添加指定的node节点(上面已经添加)
+      nodeSelector:
+        nginx: "nginx"
+        
+#kubectl apply -f yl-nginx-ingress-controllor.yaml
+#kubectl get pod -n ingress-nginx  -owide
+NAME                                        READY   STATUS      RESTARTS   AGE   IP              NODE    NOMINATED NODE   READINESS GATES
+ingress-nginx-admission-create-s8mkd        0/1     Completed   0          85m   192.26.28.6     node3   <none>           <none>
+ingress-nginx-admission-patch-qfnls         0/1     Completed   0          74m   192.27.71.15    node1   <none>           <none>
+ingress-nginx-controller-797f546b79-4p26f   1/1     Running     0          43m   10.247.124.83   node4   <none>           <none>
+ingress-nginx-controller-797f546b79-5flsd   1/1     Running     0          43m   10.28.12.190    node3   <none>           <none>
+
