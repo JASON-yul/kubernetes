@@ -142,7 +142,8 @@ ingress可以自动感知后端应用，这里就不需要查看httpd服务是�
 1.安装配置ingress-controller
 下载https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider/aws/deploy.yaml,并拷贝到yl-nginx-ingress-controllor.yaml中
 
-2.启用hostNetwork网络
+2.修改参数
+2.1启用hostNetwork网络
 hostNetwork网络，这是一种直接定义Pod网络的方式。
 如果在Pod中使用hostNetwork:true配置网络，那么Pod中运行的应用程序可以直接使用node节点的端口，这样node节点主机所在网络的其他主机，都可以通过该端口访问到此应用程序。
 
@@ -199,7 +200,25 @@ spec:
               protocol: TCP
 注：nginx-ingress-controller默认负载的是http协议。
 
-3.指定node节点配置ingress-controller（也可以不配置）
+2.2 service建议改为 type: NodePort形式
+......
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: https
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+.....    
+    
+2.3 指定node节点配置ingress-controller（也可以不配置）
 nginx-ingress-controller会随意选择一个node节点运行pod，为此需要我们把nginx-ingress-controller运行到指定的node节点上。
 首先需要给需要运行nginx-ingress-controller的node节点打标签，在此我们把nginx-ingress-controller运行在node1这个node节点上。
 # kubectl label node node1 nginx=nignx
@@ -214,12 +233,17 @@ node2     Ready    <none>   114d   v1.18.5   beta.kubernetes.io/arch=amd64,beta.
 添加指定的node节点(上面已经添加)
       nodeSelector:
         nginx: "nginx"
-        
+2.4 创建nginx-ingress-controllor
 #kubectl apply -f yl-nginx-ingress-controllor.yaml
 #kubectl get pod -n ingress-nginx  -owide
 NAME                                        READY   STATUS      RESTARTS   AGE   IP              NODE    NOMINATED NODE   READINESS GATES
 ingress-nginx-admission-create-s8mkd        0/1     Completed   0          85m   192.26.28.6     node3   <none>           <none>
 ingress-nginx-admission-patch-qfnls         0/1     Completed   0          74m   192.27.71.15    node1   <none>           <none>
-ingress-nginx-controller-797f546b79-4p26f   1/1     Running     0          43m   10.247.124.83   node4   <none>           <none>
-ingress-nginx-controller-797f546b79-5flsd   1/1     Running     0          43m   10.28.12.190    node3   <none>           <none>
+ingress-nginx-controller-797f546b79-grjk5   1/1     Running   0          53s   10.116.253.27   node1   <none>           <none>
 
+2.5查询nginx配置
+kubectl exec -it -n ingress-nginx ingress-nginx-controller-797f546b79-grjk5 bash
+#ps -ef
+#cat /etc/nginx/nginx.conf
+
+3.
