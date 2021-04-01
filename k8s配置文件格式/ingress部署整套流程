@@ -246,4 +246,70 @@ kubectl exec -it -n ingress-nginx ingress-nginx-controller-797f546b79-grjk5 bash
 #ps -ef
 #cat /etc/nginx/nginx.conf
 
-3.
+3.创建httpd的ingress.yaml
+3.1 httpd（无子目录）
+cat > yl-httpd-deployment.yml << “EOF”
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: yl-ingress
+  namespace: yl-namespace
+spec:
+  rules:
+  - host: yl.ingress.com.huawei.com
+    http:
+      paths:
+      - backend:
+          serviceName: yl-httpd-svc
+          servicePort: 80
+EOF
+
+# kubectl apply -f yl-ingresst.yaml
+ingress.extensions/yl-ingress created
+
+# kubectl get ingress yl-ingress -n yl-namespace  -owide
+NAME         CLASS    HOSTS                       ADDRESS        PORTS   AGE
+yl-ingress   <none>   yl.ingress.com.huawei.com   192.0.65.117   80      46m
+
+注：我们定义yl.ingress.com.huawei.com这个域名，根目录/访问的是yl-httpd-svc这个service的80端口，注意该端口也是yl-httpd-svc后端pod的容器端口。
+
+访问url：http://yl.ingress.com.huawei.com（通过）
+
+3.2 存在tomcat子目录
+------:如果有子目录可以添加子目录如下:
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: yl-ingress-tomcat
+  namespace: yl-namespace
+spec:
+  rules:
+  - host: yl.ingress.tomcat.com.huawei.com
+    http:
+      paths:
+      - backend:
+          serviceName: yl-tomcat-svc
+          servicePort: 8080
+        path: /tomcat
+
+注：子目录tomcat访问的是ilanni-tomcat-svc这个service的8080端口，注意该端口也是yl-tomcat-svc后端pod的容器端口
+
+# kubectl apply -f yl-ingress-tomcat.yaml
+ingress.extensions/yl-ingress-tomcat created
+
+#kubectl get ingress -n yl-namespace  -owide
+NAME                CLASS    HOSTS                          ADDRESS        PORTS   AGE
+yl-ingress          <none>   yl.ingress.com.huawei.com      192.0.65.117   80      41m
+yl-ingress-tomcat   <none>   yl.ingress.tomcat.huawei.com   192.0.65.117   80      2m19s
+
+访问url：http://yl.ingress.com.huawei.com/tomcat（通过）
+
+
+注：公司内网是windows系统，需要配置windows系统的hosts文件，通常在C:\Windows\System32\drivers\etc路径下，（10.116.253.27为nginx-ingress-controller暴露80和443的对外端口机器）
+10.116.253.27 yl.ingress.com.huawei.com
+10.116.253.27 yl.ingress.tomcat.huawei.com
