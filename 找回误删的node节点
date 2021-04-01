@@ -1,0 +1,15 @@
+列出所有nodes:  kubectl get node
+删除节点：kubectl delete node node3 
+kubectl delete type  name; 
+查看对应node上的pods信息: kubectl get pods -o wide | grep node3
+
+重新加入
+在删除的node3对应的服务器上执行：kubeadm reset
+
+使节点加入集群的命令格式是kubeadm join --token <token> <master-ip>:<master-port（6443）> --discovery-token-ca-cert-hash sha256:<hash>
+token查看，在master所在机器上执行：kubeadm token list
+默认情况下，token的有效期是24小时，如果token已经过期的话，执行：kubeadm token create
+如果找不到hash可以执行：openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+登录到node3服务器重新执行加入集群命令就OK了；
+ps:若出现Failed to connect to API Server "<master-ip>:<master-port（6443）>": cluster CA found in cluster-info configmap is invalid: public key sha256:xxxxxxxxxx not pinned
+可以试试kubeadm join --token <token> <master-ip>:<master-port（6443）> --discovery-token-unsafe-skip-ca-verification
