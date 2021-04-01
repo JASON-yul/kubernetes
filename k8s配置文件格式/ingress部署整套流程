@@ -307,9 +307,18 @@ NAME                CLASS    HOSTS                          ADDRESS        PORTS
 yl-ingress          <none>   yl.ingress.com.huawei.com      192.0.65.117   80      41m
 yl-ingress-tomcat   <none>   yl.ingress.tomcat.huawei.com   192.0.65.117   80      2m19s
 
-访问url：http://yl.ingress.com.huawei.com/tomcat（通过）
+访问url：http://yl.ingress.tomcat.huawei.com/tomcat（通过）
 
 
 注：公司内网是windows系统，需要配置windows系统的hosts文件，通常在C:\Windows\System32\drivers\etc路径下，（10.116.253.27为nginx-ingress-controller暴露80和443的对外端口机器）
 10.116.253.27 yl.ingress.com.huawei.com
 10.116.253.27 yl.ingress.tomcat.huawei.com
+
+
+注：访问yl.ingress.com.huawei.com根目录会访问把请求分发到yl-httpd-svc这个service。
+访问yl.ingress.tomcat.huawei.com子目录tomcat会访问把请求分发到yl-tomcat-svc这个service。
+
+注意：上述域名我们把它解析到10.116.253.27这个node节点上的。因为我们前面把nginx-ingress-controller运行到了该节点上。
+如果我们后续要做ingress的高可用的话，要可以通过这种方式。
+把nginx-ingress-controller运行到指定的几个node节点上，然后再把这几个node节点加入到lb中，然后对应的域名解析到该lb即可实现ingress的高可用。
+
