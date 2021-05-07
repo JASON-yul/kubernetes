@@ -1,0 +1,119 @@
+此文档参考Kubernetes集群已有node节点实现新node的扩容。
+主机系统版本：CentOS Linux release 7.5.1804
+内核版本：3.10.0-862.el7.x86_64
+k8s集群：3 master+44 node
+
+1、node节点环境设置：
+1）设置时钟与master同步 
+添加计划任务：首先通过crontab -l在参考节点上查看已有的计划任务
+crontab -e
+0 * * * * ntpdate 10.3.23.46 > /dev/null 2>&1
+30 * * * * ntpdate 172.19.64.32 > /dev/null 2>&1
+
+crontab -l 查看计划任务
+
+2）关闭并禁用防火墙与selinux
+systemctl status firewalld 查看防火墙状态
+systemctl stop firewalld 关闭防火墙服务
+systemctl disabled firewalld 开机禁用防火墙
+
+sed -i 's@^\(SELINUX=\).*@\1disabled@' /etc/sysconfig/selinux 禁用selinux
+
+3）关闭并禁用swap分区
+swapoff -a 停用swap
+vim /etc/fstab 取消swap开机挂载
+将swap一行注释掉：
+#/dev/mapper/centos-swap        none    swap    sw,comment=cloudconfig  0       0
+
+4）修改内核参数
+echo "ulimit -s 65536">>/etc/profile
+echo "ulimit -n 65536">>/etc/profile
+source /etc/profile
+
+2、安装程序包
+1）确认软件包版本: docker, kubeadm, kubelet, kubectl
+rpm -q docker
+rpm -q kubeadm
+rpm -q kubelet
+rpm -q kubectl
+软件包版本需与参考节点一致
+
+3、docker配置及启动
+1）k8s组件相关镜像获取
+方法1：使用默认k8s.grc.io镜像仓库自动获取镜像
+a. 使用可以连接google镜像仓库的代理，在docker.service中添加为环境变量
+vim /usr/lib/systemd/system/docker.service
+[Service]
+...
+Environment="HTTP_PROXY=PROXY_URL"
+Environment="HTTPS_PROXY=PROXY_URL"
+..
+
+b. 镜像加速器地址，参考其中一台node机器，若已存在忽略此步骤
+cat /etc/docker/daemon.json
+ 
+方法二：使用阿里云等其它镜像仓库手动拉取镜像，以阿里云为例
+a. 使用可以连接阿里云镜像仓库的代理，在/etc/profile中添加为环境变量（注意使用kubeadm join时需要关闭此代理）
+cat >>/etc/profile<<EOF
+
+export https_proxy=http://xxxxxx
+export http_proxy=http://xxxxxx
+
+EOF
+source /etc/profile
+
+b. 查看需要的镜像版本
+kubeadm version 查看kubernetes版本VER
+kubeadm config images list --kubernetes-version=v1.xx.x 列出镜像及版本 
+
+c. 手动pull镜像，kube-proxy, pause
+docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:VER
+docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/pause:VER
+
+d. 修改镜像标签（若使用镜像ID修改可忽略下一步）
+docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:VER k8s.gcr.io/kube-proxy:VER
+docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/pause:VER k8s.gcr.io/pause:VER
+
+e. 删除旧标签镜像
+docker rmi registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:VER 
+docker rmi registry.cn-hangzhou.aliyuncs.com/google_containers/pause:VER
+
+方法三：导出参考节点的镜像并导入新节点
+a. 参考节点机器上
+mkdir /PATH/images
+docker image list|grep -v "xxxxx镜像名称" 查看镜像列表
+docker save 镜像ID > /PATH/images/NAME.tar 导出需要的镜像
+...
+scp -r  /PATH/images/ root@NODE_IP:/PATH/ 拷贝镜像打包文件到NODE主机
+
+b. 新增节点机器上
+docker load < /PATH/images/NAME.tar 导入镜像到新节点
+...
+docker tag 镜像ID 仓库名:版本号  注意对照参考节点输入正确的仓库名和标签名
+...
+
+2）启动docker和kubelet并设为开机启动
+systemctl start docker kubelet
+systemctl enable docker kubelet
+
+4、添加新node节点到k8s集群
+a. 检查k8s集群证书是否到期
+cd /etc/kubernetes/pki
+for i in `ls *.crt|awk '{print $NF}'|sort`; do echo -e "$i `openssl x509 -in $i -noout -dates | grep notAfter`\n"; done  列出证书
+
+b. 获取token，在master主机上执行
+kubeadm token create 获取新token
+kubeadm token list 查看token
+
+c. 获取ca证书sha256编码hash值
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  
+d. 使用kubectl join命令添加节点
+kubeadm join MASTER_IP:6443 --token TOKEN --discovery-token-ca-cert-hash sha256:CERT_HASH
+  
+e. 查看集群状态和日志信息
+master上执行kubectl get nodes
+node节点执行：
+systemctl status docker
+systemctl status kubelet（docket正常启动后，若显示Failed to get system container stats for "/system.slice/kubelet.service": faile...为正常）
+docker ps -a 查看容器状态
