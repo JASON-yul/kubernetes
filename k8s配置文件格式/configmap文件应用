@@ -1,3 +1,59 @@
+一、congfigmap挂载配置文件的应用
+首先创建ConfigMap文件
+vim ConfigMap.yaml
+piVersion: v1
+kind: ConfigMap
+metadata:
+  name: reservation-configs
+  namespace: default
+data:
+  appsettings: |                                      #{}内为挂载文件内容
+    {      
+      "ConnectionStrings": {
+        "Redis": "redis-server",
+        "Reservation": "Server=localhost;uid=liweihan;pwd=**;database=Reservation",
+        "ElasticSearch": "elasticsearch"
+      },
+      "GoogleRecaptcha": {
+        "SiteKey": "6Lc-**",
+        "Secret": "6Lc-**"
+      }
+    }
+
+vim deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: testsucc
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        volumeMounts:                            #容器内挂载配置
+          - name: settings                       #挂载名称，自定义
+            mountPath: /appsettings.json         #容器内挂载文件名称
+            subPath: appsettings                  #容器以 subPath 卷挂载方式使用 ConfigMap 时，将无法接收 ConfigMap 的更新
+      volumes:
+        - name: settings
+          configMap:                            #挂载的configMap名称
+            name: reservation-configs
+
+查看pod的/appsettings.json文件内容即为reservation-configs定义的内容
+注，上面若取消subPath: appsettings，则mountPath: /appsettings.json为挂载路径，（即reservation-configs定义的内容在/appsettings.json/appsettings文件内）
+二、filebe应用
 https://www.cnblogs.com/janeysj/p/11615463.html
 
 ---
