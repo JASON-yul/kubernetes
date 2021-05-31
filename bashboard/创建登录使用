@@ -69,4 +69,4 @@ admin-token-9sn7l                                kubernetes.io/service-account-t
 6.生产登录的token
 kubectl get secret admin-token-wkmhh -o jsonpath={.data.token} -n kube-system |base64 -d
 
-
+7.通过token登录成功
