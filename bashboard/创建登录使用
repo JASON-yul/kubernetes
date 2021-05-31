@@ -1,3 +1,72 @@
 详细参见https://blog.csdn.net/qq_38774492/article/details/107940372
 注：第四部的‘访问url：https://13x.1xx.48.xxx:32740/’
     此url即为安装的k8smaster主机地址，访问时必须添加‘https://’ 和对应端口‘32740’
+
+1.安装dashbord
+wget https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+
+修改service
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kube-system
+spec:
+  ports:
+    - port: 443
+      targetPort: 8443
+  type: NodePort                     #未配置域名情况，改为NodePort
+  selector:
+    k8s-app: kubernetes-dashboard
+
+# kubectl apply -f kubernetes-dashboard.yaml
+
+2.查看其外网访问端口为31878（自动分配）
+#kubectl get svc kubernetes-dashboard -n kube-system
+NAME                   TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
+kubernetes-dashboard   NodePort   192.6.137.154   <none>        443:31878/TCP   23d
+
+3.登录url：https://安装dashborad的masterip：31878
+
+4.身份认证：登录 dashboard 的时候支持 Kubeconfig 和token 两种认证方式，Kubeconfig 中也依赖token 字段，所以生成token 这一步是必不可少的。
+生成token
+我们创建一个admin用户并授予admin 角色绑定，使用下面的yaml文件创建admin用户并赋予他管理员权限，然后就可以通过token 登陆dashbaord，
+这种认证方式本质实际上是通过Service Account 的身份认证加上Bearer token请求 API server 的方式实现，参考 Kubernetes 中的认证。
+
+# kubectl apply -f kubernetes_token.yaml 
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: admin
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: admin
+  namespace: kube-system
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+   name: admin
+   namespace: kube-system
+   labels:
+      kubernetes.io/cluster-service: "true"
+      addonmanager.kubernetes.io/mode: Reconcile
+
+5.查看创建的secret，token
+# kubectl get secret -n kube-system |grep admin
+admin-token-9sn7l                                kubernetes.io/service-account-token   3      11m
+
+6.生产登录的token
+kubectl get secret admin-token-wkmhh -o jsonpath={.data.token} -n kube-system |base64 -d
+
+
