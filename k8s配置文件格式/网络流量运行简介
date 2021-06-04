@@ -1,1 +1,21 @@
+1.外网接入流程：https://blog.csdn.net/yang75108/article/details/101268208
+2.服务发现和负载均衡：https://blog.csdn.net/yang75108/article/details/101267444
+3.pod虚拟机互通：https://blog.csdn.net/yang75108/article/details/101101384
 
+注：每一层都是构建于前一层之上
+
+第三层：外部网络接入（外部流量接入）
+【NodePort、LoadBlancer、Ingress】
+第二层：service网络（服务发现和负载均衡）
+【Cluster IP + Port】
+第一层：pod网络（pod虚拟机互通互联）
+【Pord IP + Port】
+第0层：Node节点网络（节点主机互通，一般不用管，都是通的）
+【Node IP + Port】
+
+一、第0层
+第0层Node节点网络比较好理解，也就是保证K8s节点(物理或虚拟机)之间能够正常IP寻址和互通的网络
+
+二、第一层
+1.Pod相当于是K8s云平台中的虚拟机，它是K8s的基本调度单位。Pod网络构建于Node节点网络之上，它又是上层Service网络的基础。
+2.所谓Pod网络，就是能够保证K8s集群中的所有Pods(包括同一节点上的，也包括不同节点上的Pods)，能够相互做IP寻址和通信的网络。
