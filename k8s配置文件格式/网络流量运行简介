@@ -20,7 +20,8 @@
 1.Pod相当于是K8s云平台中的虚拟机，它是K8s的基本调度单位。Pod网络构建于Node节点网络之上，它又是上层Service网络的基础。
 2.所谓Pod网络，就是能够保证K8s集群中的所有Pods(包括同一节点上的，也包括不同节点上的Pods)，能够相互做IP寻址和通信的网络。
 
-3.流量：eth0（nodeIP）——>docker0（nodeDockerIP）——>veth0（单个pod内的虚拟ip用于连接pod内的container和pause）
+3.流量：
+host：eth0（nodeIP）——>docker0（nodeDockerIP）——>veth0（单个pod内的虚拟ip用于连接pod内的container和pause）
 
 eth0是节点主机上的网卡，这个是支持该节点流量出入的设备，也是支持集群节点间IP寻址和互通的设备
 docker0是一个虚拟网桥，可以简单理解为一个虚拟交换机，它是支持该节点上的Pod之间进行IP寻址和互通的设备
@@ -39,3 +40,13 @@ CNI是一个Pod网络集成标准，简化K8s和不同Pod网络实现技术的�
 
 三、第二层（https://blog.csdn.net/yang75108/article/details/101267444）
 
+一个Service背后一般由多个Pods组成集群，这时候就引入了服务发现(Service Discovery)和负载均衡(Load Balancing)等问题
+1.流量
+k8s Cluster：pod（client）——>AccountService(提供访问pod集群的虚拟ip：clusterIP)——>podIPs（pod集群，pod1、pod2、pod3...）
+
+服务发现：Account-Service提供统一的ClusterIP来解决服务发现问题，Client只需通过ClusterIP就可以访问Account-App的Pod集群，不需要关心集群中的具体Pod数量和PodIP，
+即使是PodIP发生变化也会被ClusterIP所屏蔽。
+注意，这里的ClusterIP实际是个虚拟IP，也称Virtual IP(VIP)
+
+负载均衡：Account-Service抽象层具有负载均衡的能力，支持以不同策略去访问pod集群中的不同Pod实例，以实现负载分摊和HA高可用。
+K8s中默认的负载均衡策略是RoundRobin，也可以定制其它复杂策略
