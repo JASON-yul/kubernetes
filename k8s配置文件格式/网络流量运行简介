@@ -72,10 +72,10 @@ Client应用则通过Service Registry查询发现目标Pod，然后发起调用�
 第三，服务发现时，Kube-Proxy监听Master并发现服务ClusterIP和PodIP列表映射关系，修改本地的linux iptables转发规则，指示iptables在接收到某个ClusterIP请求时，负载均衡的转发到对应的PodIP上
 运行时，当有消费者Pod需要访问某个目标服务实例的时候，它通过ClusterIP发起调用，这个ClusterIP会被本地iptables机制截获，然后通过负载均衡，转发到目标服务Pod实例上。
 
-注册：kubelet（deployment——podIP）——注册到master节点上
-      service（service——ClusterIP）——同样注册到master节点上（与podIP形成映射关系）
+注册：kubelet（deployment——podIP）——>注册到master节点上
+      service（service——ClusterIP）——>同样注册到master节点上（与podIP形成映射关系）
       
-发现：kube-proxy——监听master——发现podIP和ClusterIP的映射关系——通过IPtable规则接收其他ClusterIP请求——负载均衡到对应的podIP上
+发现：kube-proxy——>监听master——>发现podIP和ClusterIP的映射关系——通过IPtable规则接收其他ClusterIP请求——负载均衡到对应的podIP上
 
 注：实际消费者Pod也并不直接调服务的ClusterIP，而是先调用服务名，因为ClusterIP也会变，只有服务名一般不变。
 为了屏蔽ClusterIP的变化，K8s在每个Worker节点上还引入了一个KubeDNS组件，它也监听Master并发现服务名和ClusterIP之间映射关系，这样， 消费者Pod通过KubeDNS可以间接发现服务的ClusterIP
@@ -86,6 +86,17 @@ Client应用则通过Service Registry查询发现目标Pod，然后发起调用�
 3、K8s的服务发现和负载均衡是在客户端通过Kube-Proxy + iptables转发实现，它对应用无侵入，且不穿透Proxy，没有额外性能损耗。
 4、K8s服务发现机制，可以认为是现代微服务发现机制和传统Linux内核机制的优雅结合
 
-三、第三层
+三、第三层（https://blog.csdn.net/yang75108/article/details/101268208）
 
+1.服务暴露（NodePort）
+Kube-Proxy在K8s集群中所有Worker节点上都部署有一个，它掌握Service网络的所有信息，知道怎么和Service网络以及Pod网络互通互联。
+如果要将Kube-Proxy和节点网络打通(从而将某个服务通过Kube-Proxy暴露出去)，只需要让Kube-Proxy在节点上暴露一个监听端口即可。
+这种通过Kube-Proxy在节点上暴露一个监听端口，将K8s内部服务通过Kube-Proxy暴露出去的方式，术语就叫NodePort(顾名思义，端口暴露在节点上)
+要将K8s内部的一个服务通过NodePort方式暴露出去，可以将服务发布(kind: Service)的type设定为NodePort，同时指定一个30000~32767范围内的端口
+服务发布以后，K8s在每个Worker节点上都会开启这个监听端口。这个端口的背后是Kube-Proxy，当K8s外部有Client要访问K8s集群内的某个服务，
+它通过这个服务的NodePort端口发起调用，这个调用通过Kube-Proxy转发到内部的Servcie抽象层，然后再转发到目标Pod上。
+
+client（访问服务的NodePort端口）——kube-proxy（转发到内部的service）——ClusterIP——podIP
+
+2.服务暴露（LoadBalancer）
 
