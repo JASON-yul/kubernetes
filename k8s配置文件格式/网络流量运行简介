@@ -69,11 +69,23 @@ Client应用则通过Service Registry查询发现目标Pod，然后发起调用�
 重要：（服务发现原理）
 首先，在服务Pod实例发布时(可以对应K8s发布中的Kind: Deployment)，Kubelet会负责启动Pod实例，启动完成后，Kubelet会把服务的PodIP列表汇报注册到Master节点。
 其次，通过服务Service的发布(对应K8s发布中的Kind: Service)，K8s会为服务分配ClusterIP，相关信息也记录在Master上。
-第三，在服务发现阶段，Kube-Proxy会监听Master并发现服务ClusterIP和PodIP列表映射关系，并且修改本地的linux iptables转发规则，指示iptables在接收到目标为某个ClusterIP请求时，进行负载均衡并转发到对应的PodIP上。
+第三，服务发现时，Kube-Proxy监听Master并发现服务ClusterIP和PodIP列表映射关系，修改本地的linux iptables转发规则，指示iptables在接收到某个ClusterIP请求时，负载均衡的转发到对应的PodIP上
 运行时，当有消费者Pod需要访问某个目标服务实例的时候，它通过ClusterIP发起调用，这个ClusterIP会被本地iptables机制截获，然后通过负载均衡，转发到目标服务Pod实例上。
 
 注册：kubelet（deployment——podIP）——注册到master节点上
       service（service——ClusterIP）——同样注册到master节点上（与podIP形成映射关系）
       
 发现：kube-proxy——监听master——发现podIP和ClusterIP的映射关系——通过IPtable规则接收其他ClusterIP请求——负载均衡到对应的podIP上
+
+注：实际消费者Pod也并不直接调服务的ClusterIP，而是先调用服务名，因为ClusterIP也会变，只有服务名一般不变。
+为了屏蔽ClusterIP的变化，K8s在每个Worker节点上还引入了一个KubeDNS组件，它也监听Master并发现服务名和ClusterIP之间映射关系，这样， 消费者Pod通过KubeDNS可以间接发现服务的ClusterIP
+
+总结：
+1、K8s的Service网络构建于Pod网络之上，它主要目的是解决服务发现(Service Discovery)和负载均衡(Load Balancing)问题。
+2、K8s通过一个ServiceName+ClusterIP统一屏蔽服务发现和负载均衡，底层技术是在DNS+Service Registry基础上发展演进出来。
+3、K8s的服务发现和负载均衡是在客户端通过Kube-Proxy + iptables转发实现，它对应用无侵入，且不穿透Proxy，没有额外性能损耗。
+4、K8s服务发现机制，可以认为是现代微服务发现机制和传统Linux内核机制的优雅结合
+
+三、第三层
+
 
