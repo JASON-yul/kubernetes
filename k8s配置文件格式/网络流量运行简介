@@ -98,5 +98,22 @@ Kube-Proxy在K8s集群中所有Worker节点上都部署有一个，它掌握Serv
 
 client（访问服务的NodePort端口）——kube-proxy（转发到内部的service）——ClusterIP——podIP
 
-2.服务暴露（LoadBalancer）
+2.服务暴露（LoadBalancer）一般不用
+3.服务暴露（ingress）
+
+Ingress就是一个特殊的Service，通过节点的**HostPort(80/443)**暴露出去，前置一般也有LB做负载均衡。
+Ingress转发到内部的其它服务，是通过集群内的Service抽象层/ClusterIP进行转发，最终转发到目标服务Pod上
+
+首先，它本质上就是K8s集群中的一个比较特殊的Service(发布Kind: Ingress)。
+其次，这个Service提供的功能主要就是7层反向代理(也可以提供安全认证，监控，限流和SSL证书等高级功能)，功能类似Nginx。
+第三，这个Service对外暴露出去是通过HostPort(80/443)，可以和上面LoadBalancer对接起来。
+
+总结：
+1、odePort是K8s内部服务对外暴露的基础，LoadBalancer底层有赖于NodePort。NodePort背后是Kube-Proxy，Kube-Proxy是沟通Service网络、Pod网络和节点网络的桥梁。
+2、K8s服务通过NodePort对外暴露是以集群方式暴露的，每个节点上都会暴露相应的NodePort，通过LoadBalancer可以实现负载均衡访问。
+公有云(如阿里云/AWS/GCP)提供的K8s，都支持自动部署LB，且提供公网可访问IP，LB背后对接NodePort。
+3、ngress扮演的角色是对K8s内部服务进行集中反向代理，通过Ingress，我们可以同时对外暴露K8s内部的多个服务，但是只需要购买1个(或者少量)LB。
+Ingress本质也是一种K8s的特殊Service，它也通过HostPort(80/443)对外暴露。
+4、通过Kubectl Proxy或者Port Forward，可以在本地环境快速调试访问K8s中的服务或Pod。
+5、k8s的Service发布主要有3种type，type=ClusterIP，表示仅内部可访问服务，type=NodePort，表示通过NodePort对外暴露服务，type=LoadBalancer，表示通过LoadBalancer对外暴露服务(底层对接NodePort，一般公有云才支持)。
 
