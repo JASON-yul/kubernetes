@@ -53,4 +53,15 @@ k8s Cluster：pod（client）——>AccountService(提供访问pod集群的虚�
 K8s中默认的负载均衡策略是RoundRobin，也可以定制其它复杂策略
 
 2.流量二
-k8s Cluster：
+dns域名解析：引入Service Registry+Client配合实现，在当下微服务时代，这是一个比较流行的做法。
+目前主流的产品，如Netflix开源的Eureka + Ribbon，HashiCorp开源的Consul，还有阿里新开源Nacos等，都是这个方案的典型代表
+
+k8s Cluster：pod集群（ip + port）——>自动注册到Service Registry
+             client（查找目标pod）——>Service Registry（充当注册中心）
+在K8s中引入Service Registry实现服务发现也不复杂，K8s自身带分布式存储etcd就可以实现Service Registry。
+假设K8s引入Service Registry做服务发现(如上所示)，运行时K8s可以把服务和Pod集群信息(IP + Port等)自动注册到Service Registry，
+Client应用则通过Service Registry查询发现目标Pod，然后发起调用。
+这个方案也不复杂，而且客户端可以实现灵活的负载均衡策略，但是需要引入客户端配合，对客户应用有侵入性，所以K8s也没有直接采用这种方案
+
+
+
