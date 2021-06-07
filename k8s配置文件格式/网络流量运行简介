@@ -63,5 +63,17 @@ k8s Cluster：pod集群（ip + port）——>自动注册到Service Registry
 Client应用则通过Service Registry查询发现目标Pod，然后发起调用。
 这个方案也不复杂，而且客户端可以实现灵活的负载均衡策略，但是需要引入客户端配合，对客户应用有侵入性，所以K8s也没有直接采用这种方案
 
+3.流量三（服务发现）
+在K8s平台的每个Worker节点上，都部署有两个组件，一个叫Kubelet，另外一个叫Kube-Proxy，这两个组件+Master是K8s实现服务注册和发现的关键。
 
+重要：（服务发现原理）
+首先，在服务Pod实例发布时(可以对应K8s发布中的Kind: Deployment)，Kubelet会负责启动Pod实例，启动完成后，Kubelet会把服务的PodIP列表汇报注册到Master节点。
+其次，通过服务Service的发布(对应K8s发布中的Kind: Service)，K8s会为服务分配ClusterIP，相关信息也记录在Master上。
+第三，在服务发现阶段，Kube-Proxy会监听Master并发现服务ClusterIP和PodIP列表映射关系，并且修改本地的linux iptables转发规则，指示iptables在接收到目标为某个ClusterIP请求时，进行负载均衡并转发到对应的PodIP上。
+运行时，当有消费者Pod需要访问某个目标服务实例的时候，它通过ClusterIP发起调用，这个ClusterIP会被本地iptables机制截获，然后通过负载均衡，转发到目标服务Pod实例上。
+
+注册：kubelet（deployment——podIP）——注册到master节点上
+      service（service——ClusterIP）——同样注册到master节点上（与podIP形成映射关系）
+      
+发现：kube-proxy——监听master——发现podIP和ClusterIP的映射关系——通过IPtable规则接收其他ClusterIP请求——负载均衡到对应的podIP上
 
