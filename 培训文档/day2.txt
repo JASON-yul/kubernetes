@@ -62,7 +62,7 @@ StrategyType:           RollingUpdate                   （跟新策略，滚动
 ~]# kubectl get pods -n kube-public
 ~]# kubectl exec -ti nginx-dp-5dfc689474-x5nhb /bin/bash -n kube-public
 kubectl exec -ti nginx-dp-5dfc689474-x5nhb /bin/bash -n kube-public -- ps -ef|grep 8080
-~]# kubectl delete pod nginx-dp-5dfc689474-gtfvv -n kube-public [--force --grace-period=0]
+~]# kubectl delete pod nginx-dp-5dfc689474-gtfvv -n kube-public [--force --grace-period=0]  （强制删除pod）
 ~]# kubectl delete deploy nginx-dp -n kube-public（删除pod控制器）
 
 k8s四大核心资源：deployment、pod、service、ingress
