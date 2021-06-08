@@ -1,0 +1,7 @@
+k8s证书反解
+ 
+1、将k8s配置文件(kubelet.kubeconfig)中client-certificate-data:内容拷贝
+ 
+2、echo "client-certificate-data:内容"|base64 -d > 123.pem
+ 
+3、展示证书内容：cfssl-certinfo -cert 123.pem
