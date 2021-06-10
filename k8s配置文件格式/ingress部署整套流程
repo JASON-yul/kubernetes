@@ -2,7 +2,7 @@
           https://blog.51cto.com/13972012/2469368
           https://www.ilanni.com/?p=14501#%E4%B8%80%E3%80%81ingress%E4%BB%8B%E7%BB%8D
           https://blog.51cto.com/14306186/2523096
-一、ingress详解
+一、ingress详解(https://cloud.tencent.com/developer/article/1634615)
 
 1.规划介绍
 K8s集群对外暴露服务的方式目前只有三种：loadblancer、nodeport、ingress。前两种熟悉起来比较快，而且使用起来也比较方便，在此就不进行介绍了。
