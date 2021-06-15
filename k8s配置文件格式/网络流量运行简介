@@ -75,7 +75,7 @@ Client应用则通过Service Registry查询发现目标Pod，然后发起调用�
 注册：kubelet（deployment——podIP）——>注册到master节点上
       service（service——ClusterIP）——>同样注册到master节点上（与podIP形成映射关系）
       
-发现：kube-proxy——>监听master——>发现podIP和ClusterIP的映射关系——通过IPtable规则接收其他ClusterIP请求——负载均衡到对应的podIP上
+发现：kube-proxy——>监听master——>发现podIP和ClusterIP的映射关系——>通过IPtable规则接收其他ClusterIP请求——>负载均衡到对应的podIP上
 
 注：实际消费者Pod也并不直接调服务的ClusterIP，而是先调用服务名，因为ClusterIP也会变，只有服务名一般不变。
 为了屏蔽ClusterIP的变化，K8s在每个Worker节点上还引入了一个KubeDNS组件，它也监听Master并发现服务名和ClusterIP之间映射关系，这样， 消费者Pod通过KubeDNS可以间接发现服务的ClusterIP
