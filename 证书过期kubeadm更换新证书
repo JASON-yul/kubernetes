@@ -1,3 +1,4 @@
+证书延期参考：https://github.com/luckylucky421/kubernetes1.17.3/blob/master/update-kubeadm-cert.sh
 
 1.查看正式时间
 for item in `find /etc/kubernetes/pki/  -name "*.crt"`;do openssl x509 -in $item -text -noout| grep Not;echo ======================$item===================;done
