@@ -251,7 +251,7 @@ kubectl exec -it -n ingress-nginx ingress-nginx-controller-797f546b79-grjk5 bash
 
 3.创建httpd的ingress.yaml
 3.1 httpd（无子目录）
-cat > yl-httpd-deployment.yml << “EOF”
+cat > yl-httpd-ingress.yml << “EOF”
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
