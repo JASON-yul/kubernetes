@@ -143,6 +143,7 @@ ingress可以自动感知后端应用，这里就不需要查看httpd服务是�
 
 1.安装配置ingress-controller
 下载https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider/aws/deploy.yaml,并拷贝到yl-nginx-ingress-controllor.yaml中
+注：可根据实际需要拷贝对应目录下的deploy.yaml.（我测试的时候选用的是****/do/deploy.yaml）
 
 2.修改参数
 2.1启用hostNetwork网络
