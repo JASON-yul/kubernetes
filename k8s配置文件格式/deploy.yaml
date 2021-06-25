@@ -23,7 +23,7 @@ spec:
       containers:                                                                   
         - name: cango-demo                                                           #镜像名称
           image: swr.cn-east-2.myhuaweicloud.com/cango-prd/cango-demo:0.0.1-SNAPSHOT #镜像地址
-          command: [ "/bin/sh","-c","cat /etc/config/path/to/special-key" ]    #启动命令（命令执行结束后pod会关闭）
+          command: [ "/bin/sh","-c","cat /etc/config/path/to/special-key" ]    #启动命令（单一命令执行结束后pod会关闭，需要保持进程一直都在，所以通常都用于启动服务）
           args:                                                                #启动参数
             - '-storage.local.retention=$(STORAGE_RETENTION)'
             - '-storage.local.memory-chunks=$(STORAGE_MEMORY_CHUNKS)'
