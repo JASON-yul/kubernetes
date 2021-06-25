@@ -51,7 +51,7 @@ spec:
           configMap:                            #挂载的configMap名称
             name: reservation-configs
 
-查看pod的/appsettings.json文件内容即为reservation-configs定义的内容
+查看pod的/appsettings.json文件内容即为reservation-configs定义的内容（若在docker内找不到对应的文件，可取消 subPath：appsettings行）
 注，上面若取消subPath: appsettings，则mountPath: /appsettings.json为挂载路径，（即reservation-configs定义的内容在/appsettings.json/appsettings文件内）
 二、filebe应用
 https://www.cnblogs.com/janeysj/p/11615463.html
