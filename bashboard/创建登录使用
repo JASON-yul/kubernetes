@@ -3,7 +3,7 @@
     此url即为安装的k8smaster主机地址，访问时必须添加‘https://’ 和对应端口‘32740’
 
 1.安装dashbord
-wget https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+wget https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml（版本低的情况可以提升一下版本）
 
 修改service
 kind: Service
