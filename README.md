@@ -1,3 +1,7 @@
+k8s学习：https://www.yuque.com/u1835249/xx770n/wxegb0
+         https://jimmysong.io/kubernetes-handbook/
+
+
 7台机器k8s扩容安装：https://github.com/kubernetes-sigs/kubespray#requirements
 
 # kubernetes
