@@ -6,6 +6,7 @@ k8s对接ceph参考
   https://codeleading.com/article/92503363236/
   
   https://kubesphere.com.cn/forum/d/3324-ceph-rbd-pvc/2
+  
 
 7台机器k8s扩容安装：https://github.com/kubernetes-sigs/kubespray#requirements
 
