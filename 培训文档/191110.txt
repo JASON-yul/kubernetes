@@ -422,6 +422,9 @@ cd /opt/certs/
 # cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server apiserver-csr.json |cfssl-json -bare apiserver
 
 hdss7-21、7-22
+https://github.com/kubernetes/kubernetes
+到CAHNGELOG-XXX下下载。server binares 下的tar.gz
+
 # mkdir cert
 scp 证书3套
 # ll
