@@ -156,6 +156,9 @@ yum install docker-compose -y
 
 sh /opt/harbor/install.sh
 
+报错：failed to write digest data: open /data/docker/image/overlay2/imagedb/content/sha256/.tmp-d1b8adbed58fb4f7892cc8d564f80fafb8589df2f1d4db5ea4f05ea2dd1358f0814172271: no such file or directory
+解决方案：mkdir -p /data/docker/image/overlay2/imagedb/content/sha256/
+
 docker-compose ps
 
 yum install nginx -y
