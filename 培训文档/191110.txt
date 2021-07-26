@@ -10,7 +10,7 @@ hdss7-11上（本可以通过hosts解析，但是hosts无法事项docker内解�
 ~]# yum install bind -y
 
 ~]# vi /etc/named.conf
-listen-on port 53 { 10.4.7.11; };
+listen-on port 53 { 10.4.7.11; };   #监听在内网上
 allow-query     { any; };          #允许哪些客户端访问
 forwarders      { 10.4.7.254; };   #绑定上级dns，网关地址
 recursion yes;                     #递归查询
