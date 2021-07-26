@@ -13,7 +13,7 @@ hdss7-11上（本可以通过hosts解析，但是hosts无法事项docker内解�
 listen-on port 53 { 10.4.7.11; };   #监听在内网上
 allow-query     { any; };          #允许哪些客户端访问
 forwarders      { 10.4.7.254; };   #绑定上级dns，网关地址
-recursion yes;                     #递归查询
+recursion yes;                     #递归查询dns
 dnssec-enable no;
 dnssec-validation no;
 
@@ -78,8 +78,9 @@ ping hdss7-12.host.com
 注：若不通查看每个虚拟机的DNS是否配置成了主机ip：10.4.7.11
 
 将Windows内的dns也改为10.4.7.11
-通过cmd，ping hdss7-12.host.com
+通过cmd，ping hdss7-12.host.com   （通）
 
+将短域名添加到/etc/resolv.conf
 echo 'search host.com' >>/etc/resolv.conf
 
 二、签证书（自签ssl证书）
