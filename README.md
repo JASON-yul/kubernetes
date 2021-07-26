@@ -1,3 +1,6 @@
+最新部署参考：https://www.fdevops.com/2020/09/23/k8s-7052
+
+
 k8s学习：https://www.yuque.com/u1835249/xx770n/wxegb0
 
          https://jimmysong.io/kubernetes-handbook/   （重要**************************************************************）
