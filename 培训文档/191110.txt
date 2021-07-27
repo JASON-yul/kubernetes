@@ -91,7 +91,7 @@ HDSS7-200上:
 ~]# wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64 -O /usr/bin/cfssl-certinfo
 ~]# chmod +x /usr/bin/cfssl*
 
-/opt/certs/ca-csr.json
+/opt/certs/ca-csr.json     （ca证书的请求文件）
 {
     "CN": "OldboyEdu",
     "hosts": [
@@ -119,8 +119,8 @@ certs]# cfssl gencert -initca ca-csr.json | cfssl-json -bare ca
 #ll 查看
 ca.csr
 ca-csr.json
-ca-key.pem
-ca.pem
+ca-key.pem      （根证书的私钥）
+ca.pem          （根证书）
 
 ~]# curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
@@ -368,6 +368,15 @@ cluster is healthy
 988139385f78284: name=etcd-server-7-22 peerURLs=https://10.4.7.22:2380 clientURLs=http://127.0.0.1:2379,https://10.4.7.22:2379 isLeader=false
 5a0ef2a004fc4349: name=etcd-server-7-21 peerURLs=https://10.4.7.21:2380 clientURLs=http://127.0.0.1:2379,https://10.4.7.21:2379 isLeader=false
 f4a0cb0a765574a8: name=etcd-server-7-12 peerURLs=https://10.4.7.12:2380 clientURLs=http://127.0.0.1:2379,https://10.4.7.12:2379 isLeader=true
+
+报错：rafthttp: health check for peer 93ca36bd7fd548e3 could not connect: x509: certificate has expired or is not yet valid (prober "ROUND_TRIPPER_RAFT_MESSAGE")
+
+解决方案：https://www.jianshu.com/p/f274ca99dd00
+原因：很有可能是由于时间不同步导致的，比较简单的方法
+yum install -y ntpdate
+ntpdate ntp3.aliyun.com
+即主要集群节点日期及时间保持同步
+
 
 hdss7-200
 cd /opt/certs/
