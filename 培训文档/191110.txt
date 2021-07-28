@@ -452,6 +452,7 @@ total 24
 -rw-r--r-- 1 root root 1363 Nov 10 17:41 client.pem
 # mkdir conf
 
+#日志审计，资源配置清单，用于apiserver启动。
 conf]# vi audit.yaml
 apiVersion: audit.k8s.io/v1beta1 # This is required.
 kind: Policy
@@ -573,6 +574,11 @@ stdout_events_enabled=false                                     ; emit events on
 
 # mkdir -p /data/logs/kubernetes/kube-apiserver
 # supervisorctl update
+
+#apiserver监听两个端口，一个是自己的端口，一个是本地回环端口8080（此端口特别注意防止与其他端口冲突）
+# netstat -luntp|grep apiser
+tcp        0      0 127.0.0.1:8080          0.0.0.0:*               LISTEN      36499/./kube-apiser 
+tcp6       0      0 :::6443                 :::*                    LISTEN      36499/./kube-apiser 
 
 HDSS7-11和HDSS7-12上:
 # yum install nginx -y
