@@ -584,7 +584,7 @@ HDSS7-11和HDSS7-12上:
 # yum install nginx -y
 
 /etc/nginx/nginx.conf
-
+#在最后添加
 stream {
     upstream kube-apiserver {
         server 10.4.7.21:6443     max_fails=3 fail_timeout=30s;
@@ -600,6 +600,7 @@ stream {
 
 # yum install keepalived -y
 
+#用于检测7443端口是否挂掉
 /etc/keepalived/check_port.sh
 #!/bin/bash
 #keepalived 监控端口脚本
@@ -664,7 +665,7 @@ keepalived从:
 global_defs {
 	router_id 10.4.7.12
 }
-vrrp_script chk_nginx {
+vrrp_script chk_nginx {                                   #个别版本起不起来，可忽略
 	script "/etc/keepalived/check_port.sh 7443"
 	interval 2
 	weight -20
@@ -680,7 +681,7 @@ vrrp_instance VI_1 {
 		auth_type PASS
 		auth_pass 11111111
 	}
-	track_script {
+	track_script {                           #个别版本起不起来，可忽略
 		chk_nginx
 	}
 	virtual_ipaddress {
