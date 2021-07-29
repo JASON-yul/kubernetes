@@ -645,7 +645,7 @@ vrrp_instance VI_1 {
     priority 100
     advert_int 1
     mcast_src_ip 10.4.7.11
-    nopreempt
+    nopreempt                                 #非抢占式，防止VIP来回改变
 
     authentication {
         auth_type PASS
@@ -767,7 +767,7 @@ stdout_events_enabled=false                                              ; emit 
 
 # ln -s /opt/kubernetes/server/bin/kubectl /usr/bin/kubectl
 
-# kubectl get cs
+# kubectl get cs                  （cluster status）
 NAME                 STATUS    MESSAGE              ERROR
 controller-manager   Healthy   ok                   
 scheduler            Healthy   ok                   
@@ -775,7 +775,7 @@ etcd-1               Healthy   {"health": "true"}
 etcd-0               Healthy   {"health": "true"}   
 etcd-2               Healthy   {"health": "true"} 
 
-hdss7-200
+hdss7-200 #如果要增加新的node，需要把node的ip添加到kubelet-csr.json上，并且重新签发证书，重启kubelet。
 # vi kubelet-csr.json
 
 {
@@ -813,7 +813,7 @@ hdss7-200
 conf]# kubectl config set-cluster myk8s \
   --certificate-authority=/opt/kubernetes/server/bin/cert/ca.pem \
   --embed-certs=true \
-  --server=https://10.4.7.10:7443 \
+  --server=https://10.4.7.10:7443 \                         #客户端找apiserver时通过vip，
   --kubeconfig=kubelet.kubeconfig
 
 conf]# kubectl config set-credentials k8s-node \
@@ -829,6 +829,7 @@ conf]# kubectl config set-context myk8s-context \
   
 conf]# kubectl config use-context myk8s-context --kubeconfig=kubelet.kubeconfig
 
+#让user是k8s-node的账户有一个集群角色system:node，让其具有集群运算节点的权限。
 conf}# k8s-node.yaml
 
 apiVersion: rbac.authorization.k8s.io/v1
@@ -844,14 +845,14 @@ subjects:
   kind: User
   name: k8s-node
 
-conf]# kubectl create -f k8s-node.yaml
+conf]# kubectl create -f k8s-node.yaml   #创建完成后，数据已经放在etcd里面了
 
 conf]# kubectl get clusterrolebinding k8s-node -o yaml
 
 HDSS7-22上:
 conf]# scp hdss7-21:/opt/kubernetes/server/bin/conf/kubelet.kubeconfig .
 
-HDSS7-200上:
+HDSS7-200上:   （编车模式）小镜像，帮助业务容器优先设置ips，UTS，net
 # docker pull kubernetes/pause
 # docker tag f9d5de079539 harbor.od.com/public/pause:latest
 # docker push harbor.od.com/public/pause:latest
