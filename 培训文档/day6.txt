@@ -1157,7 +1157,7 @@ prometheus.yml
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ["alertmanager"]
+        - targets: ["alertmanager"]    #servicename
 rule_files:
  - "/data/etc/rules.yml"
 
@@ -1166,4 +1166,4 @@ ps aux|grep prometheus
 root     130984  0.0  0.0   9088   668 pts/0    S+   13:05   0:00 grep --color=auto prometheus
 root     168556  2.1  0.3 169524 28936 ?        Ssl  Jul03  18:13 traefik traefik --api --kubernetes --logLevel=INFO --insecureskipverify=true --kubernetes.endpoint=https://10.4.7.10:7443 --accesslog --accesslog.filepath=/var/log/traefik_access.log --traefiklog --traefiklog.filepath=/var/log/traefik.log --metrics.prometheus
 root     226138 12.1  7.9 1620696 633956 ?      Ssl  Jul03 212:30 /bin/prometheus --config.file=/data/etc/prometheus.yml --storage.tsdb.path=/data/prom-db --storage.tsdb.min-block-duration=10m --storage.tsdb.retention=72h
-[root@hdss7-22 ~]# kill -SIGHUP 226138
+[root@hdss7-22 ~]# kill -SIGHUP 226138   #平滑加载
