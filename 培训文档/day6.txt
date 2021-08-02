@@ -764,6 +764,7 @@ scrape_configs:
     action: replace
     target_label: kubernetes_pod_name
 
+#以下是各插件监控的注解，添加到deploy内，与label同级。
 traefik
 
 "annotations": {
@@ -785,6 +786,7 @@ http
   "blackbox_port": "8080",
   "blackbox_scheme": "http"
 }
+
 jvm
 "annotations": {
   "prometheus_io_scrape": "true",
