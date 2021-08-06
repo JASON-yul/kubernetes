@@ -1,1 +1,47 @@
-fd
+t# cat demo.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-demo
+  namespace: deploytest
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: demoapp
+  strategy:
+    rollingUpdate:
+      maxSurge: 1                   #先增后减，且可用pod总数不低于期望值。
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: demoapp
+    spec:
+      containers:
+      - name: demoapp
+        image: ikubernetes/demoapp:v1.1
+        ports:
+        - containerPort: 80
+          name: http
+        livenessProbe:
+          httpGet:
+            path: '/livez'
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: '/readyz'
+            port: 80
+            
+           
+# kubectl patch deployments/deploy-demo -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":1}}}}' -n deploytest  （命令修改deploy参数，可用于滚动发布新的镜像版本）
+
+# kubectl get replicasets -l app=demoapp -n deploytest   （查看发布记录）
+NAME                     DESIRED   CURRENT   READY   AGE
+deploy-demo-555d79b966   0         0         0       114m
+deploy-demo-6898cbf4f7   0         0         0       137m
+deploy-demo-6fbc9469f8   0         0         0       115m
+deploy-demo-7cdcc9c88d   5         5         5       79m
+deploy-demo-7cf94598df   0         0         0       81m
+deploy-demo-7f9f94d786   0         0         0       86m
