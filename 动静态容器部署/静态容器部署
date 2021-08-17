@@ -67,3 +67,7 @@ spec:
         nfs:
           path: /data/tools
           server: 云环境地址
+
+
+#!/bin/bash
+java -Xmx512m -Xms512m -jar /usr/share/jenkins/agent.jar -jnlpUrl http://${jenkinsURL}/computer/${Node}/slave-agent.jnlp -workDir ${workDir}
