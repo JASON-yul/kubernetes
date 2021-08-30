@@ -1,6 +1,7 @@
 参考文档：https://help.aliyun.com/document_detail/160530.html?utm_content=g_1000230851&spm=5176.20966629.toubu.3.f2991ddcpxxvD1#title-iki-j3d-j9y
     官网：https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/?spm=a2c4g.11186623.0.0.65711f35WhtprC
-    
+
+一、安全形势
 TOKEN=exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxtOg
 APISERVER=https://192.168.0.1:6443
 deploy_buildcenter_deploy_replicas=1
@@ -15,3 +16,5 @@ curl -i -k  -XPATCH  -H "Authorization: Bearer $TOKEN" $APISERVER/apis/extension
                      -d "[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/image\", \"value\":\"{images}\"},{\"op\":\"replace\",\"path\":\"/spec/replicas\", \"value\":${deploy_buildcenter_deploy_replicas}}]"
    
    
+二、免密远程形势
+ssh k8s-master01 kubectl patch statefulset/demodb -p \'{\"spec\":{\"replicas\":9}}\' -n statefulset
