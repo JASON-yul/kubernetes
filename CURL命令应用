@@ -1,0 +1,14 @@
+TOKEN=exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxtOg
+APISERVER=https://192.168.0.1:6443
+deploy_buildcenter_deploy_replicas=1
+deploy_buildcenter_image_version=$4
+
+docker build -f ./dockerFileBeta -t  images:$4 .
+docker push images
+docker rmi images
+docker rmi images
+curl -i -k  -XPATCH  -H "Authorization: Bearer $TOKEN" $APISERVER/apis/extensions/v1beta1/namespaces/{namespace}/deployments/{deploymentname}  \
+                     -H "Content-Type:application/json-patch+json" \
+                     -d "[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/image\", \"value\":\"{images}\"},{\"op\":\"replace\",\"path\":\"/spec/replicas\", \"value\":${deploy_buildcenter_deploy_replicas}}]"
+   
+   
