@@ -1,0 +1,2 @@
+k8s的tab键不能正常使用，执行以下命令
+# source <(kubectl completion bash)
