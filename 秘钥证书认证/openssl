@@ -1,0 +1,14 @@
+一、创建token证书
+注：说明
+openssl rand
+ [-out file] [-rand file(s)] [-base64] [-hex] num
+参数说明：
+-out		：指定随机数输出文件，否则输出到标准输出。
+-rand file	：指定随机数种子文件。种子文件中的字符越随机，openssl rand生成随机数的速度越快，随机度越高。
+-base64	：指定生成的随机数的编码格式为base64。
+-hex		：指定生成的随机数的编码格式为hex。
+num		：指定随机数的长度。
+例子：
+[root@xuexi tmp]# openssl rand -base64 30;
+openssl rand -hex 30;
+openssl rand 30
