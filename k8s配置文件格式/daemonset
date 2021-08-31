@@ -1,0 +1,43 @@
+注：不需要指定replicas指定pod启动数量，会自动在每个node节点启动一个pod。并随着node节点的增减而变化
+# cat daemonset.yaml
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: demo-daemonset
+  namespace: daemonset
+  labels:
+    app: prometheus
+    component: node-exporter
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+      component: node-exporter
+  template:
+    metadata:
+      name: prometheus-node-exporter
+      labels:
+        app: prometheus
+        component: node-exporter
+    spec:
+      containers:
+      - image: prom/node-exporter:v0.18.0
+        imagePullPolicy: IfNotPresent
+        name: prometheus-node-exporter
+        ports:
+        - containerPort: 9100          #pod内服务端口
+          hostPort: 9100               #hostPort是直接将容器的端口与所调度的节点上的端口路由，这样用户就可以通过宿主机的IP加上来访问Pod了
+          name: prom-node-exp
+        livenessProbe:                 #存活性探针
+          tcpSocket:
+            port: 9100
+          initialDelaySeconds: 3
+        readinessProbe:               #就绪性探针
+          initialDelaySeconds: 5
+          httpGet:
+            path: '/metrics'
+            port: 9100
+            scheme: HTTP
+      hostNetwork: true              #Pod中的所有容器就直接暴露在宿主机的网络环境中，这时候，Pod的PodIP就是其所在Node的IP
+      hostPID: true
