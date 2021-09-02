@@ -334,3 +334,34 @@ yl-ingress-tomcat   <none>   yl.ingress.tomcat.huawei.com   192.0.65.117   80   
 如果我们后续要做ingress的高可用的话，要可以通过这种方式。
 把nginx-ingress-controller运行到指定的几个node节点上，然后再把这几个node节点加入到lb中，然后对应的域名解析到该lb即可实现ingress的高可用。
 
+
+
+
+五、配置tls认证
+1.根据认证证书创建secret
+#kubectl create secret tls ssss-secret --cert=ssss-secret.com.crt --key=ssss-secret.com.crt.key -n dev
+
+注：ssss-secret.com.crt、ssss-secret.com.crt.key：为nginx（允许访问外部网络或后台服务的tls签发证书）等tls正式和私钥。
+# vim gateway-ingress.yaml
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  name: ssss-gateway
+  namespace: ssss
+spec:
+  tls:
+  - hosts:
+    - ssss.ssss.ssss.ssss.com
+    secretName: ssss-secret
+  rules:
+  - host: ssss.ssss.ssss.ssss.com
+    http:
+      paths:
+      - backend:
+          serviceName: ssss-gateway
+          servicePort: 8086
+        path: /sss(.*)
+访问：http://ssss.ssss.ssss.ssss.com/sss/xxxx 通过
