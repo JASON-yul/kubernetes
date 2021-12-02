@@ -1,0 +1,13 @@
+#!/bin/bash
+set -v
+name2=$(kubectl  get all -A|egrep "namespace1|namespace2|namespace3"|egrep "statefulset|deployment|daemonset"|awk '{print $1}'|uniq)
+
+for i in $ $name2
+do
+    name1=$(kubectl  get all -n $i |egrep "statefulset|deployment|daemonset"|awk '{print $1}')
+    for j in $name1
+    do
+        echo $j
+        for i in `km get deployment |grep -v NAME|awk '{print $1}'`;do kubectl -n mds get deployment.apps $i -o custom-columns=NAME:.metadata.name,RESOURCE:.spec.template.spec.containers[0].resources;done >>km.aml
+    done
+done
