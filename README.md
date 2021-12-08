@@ -1,3 +1,5 @@
+常用过滤命令kubectl-neat等参考：https://lework.github.io/2020/11/19/kubernetes-filter/
+
 最新部署参考：https://www.fdevops.com/2020/09/23/k8s-7052
 
 
