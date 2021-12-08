@@ -1,0 +1,3 @@
+deployment 管理无状态应用 （pod名称随机）
+statefulset 管理有状态应用（pod名称有规律性）
+daemonset 每个节点运行单个pod资源 （pod名称随机）
