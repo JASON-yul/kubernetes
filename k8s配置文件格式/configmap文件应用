@@ -1,6 +1,7 @@
 注：：若不知道文件内容怎样写成config.yaml根式，可以用声明式直接生成config.yaml格式
-重要：kubectl create cm kubelet-cm --from-file=./kubelet.kubeconfig
+重要：kubectl create cm kubelet-cm --from-file=./kubelet.kubeconfig  --from-file=./kubelet.sh
 
+也可以接多个键值对：kubectl create configmap demoapp-config --from-literal=demoapp.host='0,0,0,0' --from-literal=demoapp.port='8080'
 
 一、congfigmap挂载配置文件的应用
 首先创建ConfigMap文件
