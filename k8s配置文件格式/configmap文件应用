@@ -1,3 +1,4 @@
+ 书205页
 注：：若不知道文件内容怎样写成config.yaml根式，可以用声明式直接生成config.yaml格式
 重要：kubectl create cm kubelet-cm --from-file=./kubelet.kubeconfig  --from-file=./kubelet.sh
 
