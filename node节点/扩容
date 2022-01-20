@@ -137,6 +137,7 @@ node03~]# ifconfig flannel.1 down
 node03~]# ifconfig docker0 down
 node03~]# ip link delete cni0
 node03~]# ip link delete flannel.1
+根据自己的网卡名称进行操作，没有的则不需要理会
 
 3）重新加入集群（在要添加的node上启动已配置好的进程）
 node03~]# systemctl start docker 
@@ -148,4 +149,40 @@ kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discov
 添加node复制生成的token在node节点上运行，添加到集群去
 node03~]#kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discovery-token-ca-cert-hash sha256:02f7ecad88055b72d7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4
 
-2.扩容node节点（或重新部署master节点，如果master节点网络出问题无法解决可用此方法）
+2.扩容master节点（或重新部署master节点，如果master节点网络出问题无法解决可用此方法），方法同上node相似
+
+1）先驱逐master节点上的pods，更具需求需不需要驱逐
+master~]# kubectl drain master3（master节点名称） --delete-local-data --ignore-daemonsets --force
+
+2）重置master节点
+master3~]# kubeadm reset
+master3~]# systemctl stop kubelet
+master3~]# systemctl stop docker
+master3~]# rm -rf /var/lib/cni/
+master3~]# rm -rf /var/lib/kubelet/*
+master3~]# rm -rf /etc/cni/
+master3~]# ifconfig cni0 down
+master3~]# ifconfig flannel.1 down
+master3~]# ifconfig docker0 down
+master3~]# ip link delete cni0
+master3~]# ip link delete flannel.1
+根据自己的网卡名称进行操作，没有的则不需要理会
+
+3）重新加入集群（在要添加的master3上启动已配置好的进程）
+master3~]# systemctl start docker 
+master3~]# systemctl start kubelet
+
+生成kubeadm token（master1上执行，生成kubeadm join 命令）
+master1~]# kubeadm  token create --print-join-command
+kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discovery-token-ca-cert-hash sha256:02f7ecad88055b72d7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4
+
+配置hosts表，添加新增的master3
+172.28.19.51   master3  k8s-api.ilinux.io
+
+同一高可用控制平面集群中的各个节点需要共享CA和front-proxy的数字证书和秘钥以及专用的serviceAccount账户的公钥和私钥。
+master1~]#
+
+添加master3复制生成的token在node节点上运行，添加到集群去
+master3~]#kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discovery-token-ca-cert-hash sha256:02f7ecad88055b72d7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4
+
+
