@@ -1,4 +1,4 @@
-注意事项，如下：
+一、注意事项，如下：
 
 1、#设置在ipv4地址池上，启用ipip模式，并启用全局变量
 - name: CALICO_IPV4POOL_IPIP
@@ -22,7 +22,14 @@
     "subnet": "usePodCidr"    #子网使用PodCidr模式
 },
 
+二、配置前清理部署环境
+master~]# ifconfig cni0 down
+master~]# ifconfig flannel.1 down
+master~]# ifconfig docker0 down
+master~]# ip link delete cni0
+master~]# ip link delete flannel.1
 
+三、配置calico后，启动上面禁用的配置
 # cat calico.yaml
 ---
 # Source: calico/templates/calico-config.yaml
