@@ -1,3 +1,29 @@
+注意事项，如下：
+
+1、#设置在ipv4地址池上，启用ipip模式，并启用全局变量
+- name: CALICO_IPV4POOL_IPIP
+  value: "Always"
+#关闭vxlan模式
+- name: CALICO_IPV4POOL_VXLAN
+  value: "Never"
+2、"CALICO_IPV4POOL_CIDR"的值"10.244.0.0/16",应该与 /etc/kubernetes/manifests/kube-controller-manager.yaml内的，--cluster-cidr=10.244.0.0/16，保持一致
+- name: CALICO_IPV4POOL_CIDR
+  value: "10.244.0.0/16"
+3、#calico默认以26位子网掩码切分地址池，并将各子网掩码给集群中的节点，若需要使用24位的掩码长度，定义一下变量
+- name: CALICO_IPV4POOL_BLOCK_SIZE
+  value: "24"
+4、#calico默认不会从node.spec.podcidr中分配地址，若想节点真正使用地址池，并吻合podCIDR的定义，通过配置如下变量可以实现，并配置ConfigMap/calico-config下“ipam”
+- name: USE_POD_CIDR
+  value: "true"
+.....
+
+"ipam": {
+    "type": "host-local",
+    "subnet": "usePodCidr"    #子网使用PodCidr模式
+},
+
+
+# cat calico.yaml
 ---
 # Source: calico/templates/calico-config.yaml
 # This ConfigMap is used to configure a self-hosted Calico installation.
