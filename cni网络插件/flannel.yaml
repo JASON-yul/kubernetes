@@ -1,3 +1,5 @@
+
+cat kube-flannel.yml
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
@@ -235,3 +237,15 @@ spec:
       - name: flannel-cfg
         configMap:
           name: kube-flannel-cfg
+
+
+注意：配置网络和网络隧道模式，
+"Network": "10.244.0.0/16",应该与 /etc/kubernetes/manifests/kube-controller-manager.yaml内的，--cluster-cidr=10.244.0.0/16，对应
+ 
+ net-conf.json: |
+    {
+      "Network": "10.244.0.0/16",
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
