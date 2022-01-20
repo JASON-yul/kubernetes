@@ -179,10 +179,15 @@ kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discov
 配置hosts表，添加新增的master3
 172.28.19.51   master3  k8s-api.ilinux.io
 
-同一高可用控制平面集群中的各个节点需要共享CA和front-proxy的数字证书和秘钥以及专用的serviceAccount账户的公钥和私钥。采用上传方式
-master1~]#
+同一高可用控制平面集群中的各个节点需要共享CA和front-proxy的数字证书和秘钥以及专用的serviceAccount账户的公钥和私钥。
+此例：采用上传方式参考507页，将其上传为k8s集群的kube-system名称空间中名为kubeadm-certs的secret资源，然后执行添加命令是自动将其下载下来
+master1~]#sudo kubeadm init phase upload-certs --upload-certs
+[upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
+[upload-certs] Using certificate key:
+dab6174ab17d1306286c2660984e60cc83c8e288fbbcf2bffd458167a16747ff
 
 添加master3复制生成的token在node节点上运行，添加到集群去
-master3~]#kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discovery-token-ca-cert-hash sha256:02f7ecad88055b72d7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4
+master3~]#kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0  /
+--discovery-token-ca-cert-has7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4 --control-plane --certificate-key dab6174ab17d1306286c2660984e60cc8347ff
 
 
