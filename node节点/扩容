@@ -117,3 +117,35 @@ node节点执行：
 systemctl status docker
 systemctl status kubelet（docket正常启动后，若显示Failed to get system container stats for "/system.slice/kubelet.service": faile...为正常）
 docker ps -a 查看容器状态
+
+
+案例三：用kubeadm安装的k8s集群扩容node节点或master节点
+1.扩容node节点（或重新部署node节点，如果node节点网络出问题无法解决可用此方法）
+
+1）先驱逐node节点上的pods，更具需求需不需要驱逐
+master~]# kubectl drain node2（node节点名称） --delete-local-data --ignore-daemonsets --force
+
+2）重置node节点
+node03~]# kubeadm reset
+node03~]# systemctl stop kubelet
+node03~]# systemctl stop docker
+node03~]# rm -rf /var/lib/cni/
+node03~]# rm -rf /var/lib/kubelet/*
+node03~]# rm -rf /etc/cni/
+node03~]# ifconfig cni0 down
+node03~]# ifconfig flannel.1 down
+node03~]# ifconfig docker0 down
+node03~]# ip link delete cni0
+node03~]# ip link delete flannel.1
+
+3）重新加入集群（在要添加的node上启动已配置好的进程）
+node03~]# systemctl start docker 
+node03~]# systemctl start kubelet
+生成kubeadm token（master上执行，生成kubeadm join 命令）
+master~]# kubeadm  token create --print-join-command
+kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discovery-token-ca-cert-hash sha256:02f7ecad88055b72d7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4
+
+添加node复制生成的token在node节点上运行，添加到集群去
+node03~]#kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discovery-token-ca-cert-hash sha256:02f7ecad88055b72d7190946d82b794f7ecf799081914a52edcb925d3a7ee1d4
+
+2.扩容node节点（或重新部署master节点，如果master节点网络出问题无法解决可用此方法）
