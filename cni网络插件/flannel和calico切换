@@ -1,0 +1,8 @@
+1、切换前尽量把所有的pod关闭
+2、启动成功后将kube-system命名空间内的pod逐一重启一遍
+3、calico和flannel网络网段尽量一致
+4、参照calico.yaml内容先关闭之前的网络插件
+5、配置calico：kubectl apply -f calico.yaml
+6、启动被关闭的pod
+7、验证pod之间是否可以正常通信
+8、检查相关labels是否匹配
