@@ -179,7 +179,7 @@ kubeadm join k8s-api.ilinux.io:6443 --token tgrtwi.fiultrn56px5pvi0     --discov
 配置hosts表，添加新增的master3
 172.28.19.51   master3  k8s-api.ilinux.io
 
-同一高可用控制平面集群中的各个节点需要共享CA和front-proxy的数字证书和秘钥以及专用的serviceAccount账户的公钥和私钥。
+同一高可用控制平面集群中的各个节点需要共享CA和front-proxy的数字证书和秘钥以及专用的serviceAccount账户的公钥和私钥。采用上传方式
 master1~]#
 
 添加master3复制生成的token在node节点上运行，添加到集群去
