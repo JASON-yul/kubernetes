@@ -338,6 +338,9 @@ yl-ingress-tomcat   <none>   yl.ingress.tomcat.huawei.com   192.0.65.117   80   
 
 
 五、配置tls认证
+自签证书openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=nginxsvc/O=nginxsvc"
+生成tls.key tls.crt
+
 1.根据认证证书创建secret
 #kubectl create secret tls ssss-secret --cert=ssss-secret.com.crt --key=ssss-secret.com.crt.key -n dev
 
@@ -364,4 +367,4 @@ spec:
           serviceName: ssss-gateway
           servicePort: 8086
         path: /sss(.*)
-访问：http://ssss.ssss.ssss.ssss.com/sss/xxxx 通过
+访问：https://ssss.ssss.ssss.ssss.com/sss/xxxx 通过
